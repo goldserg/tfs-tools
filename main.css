@@ -1,0 +1,108 @@
+#taskboard-table-body {
+	table-layout: fixed;
+}
+
+.tbTile:not(.ui-draggable-dragging){
+	width:auto;
+}
+
+.query-editor .value .field-filter-value-control.identity-picker-container {
+	height: auto !important;
+}
+
+/* Стилизация WI 2018 */
+.form-grid .control {
+    display: flex;
+    align-items: center;
+}
+.new-work-item-view .witform-layout .control .workitemlabel.label-control {
+    min-width: 130px;
+}
+.percent-wi {
+	float: left;
+    display: flex;
+    height: 25px;
+    align-items: center;
+    font-weight: bold;
+    font-size: large;
+    border-radius: 5px;
+    padding: 0 5px;
+}
+.percent-wi.percent--0 {
+	background-color: #e2e2e2;
+}
+.percent-wi.percent--25 {
+	background-color: #fd9898;
+}
+.percent-wi.percent--50 {
+	background-color: #fbff00;
+}
+.percent-wi.percent--75 {
+	background-color: #4be6ff;
+}
+.percent-wi.percent--100 {
+	background-color: chartreuse;
+}
+
+.state--Low {
+	color: #0ea850;
+}
+.state--Medium {
+	color: #056fbd;
+}
+.state--High {
+	color: #f9c402;
+	font-weight: bold;
+}
+.state--Critical {
+	color: #ec0902;
+	font-weight: bold;
+}
+.row--not-important {
+	opacity: 0.3;
+	transition-duration: 300ms;
+}
+.row--not-important:hover {
+	opacity: 1;
+}
+
+.row--very-important {
+	animation: blink 2s steps(5, start) infinite;
+}
+@keyframes blink {
+  0%, 100% {
+    background-color: rgba(255, 0, 0, 0);
+  }
+  50% {
+    background-color: rgba(255, 0, 0, 0.3);
+  }
+}
+
+
+/* перенос кнопки шаблоны */
+.toolbar ul.menu-bar>.menu-item.drop-visible.focus.hover {
+	padding: 5px;
+	border: none;
+}
+.work-item-form-main .work-item-form-main-header .work-item-form-toolbar-container .toolbar .menu-bar .menu-item.focus:not(.disabled):not(:hover) {
+	padding: 5px;
+	border: none;
+}
+
+.dev-panel {
+	position: absolute;
+  background-color: #111;
+  color: #eee;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  opacity: 0;
+  transition-duration: 0.7s;
+}
+
+.dev-panel.showed {
+	height: 60px;
+  opacity: 1;
+}
