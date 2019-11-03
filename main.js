@@ -1,41 +1,5 @@
-jQuery(function($) {
-
-	var _oldShow = $.fn.show;
-
-  $.fn.show = function(speed, oldCallback) {
-		return $(this).each(function() {
-			var obj         = $(this),
-				newCallback = function() {
-					if ($.isFunction(oldCallback)) {
-						oldCallback.apply(obj);
-					}
-					obj.trigger('afterShow');
-				};
-      	// you can trigger a before show if you want
-			obj.trigger('beforeShow');
-
-			// now use the old function to show the element passing the new callback
-    	_oldShow.apply(obj, [speed, newCallback]);
-  	});
-	};
-});
-
-const setLS = (key, value) => {
-	localStorage[key] = JSON.stringify(value);
-};
-const getLS = (key, value) => {
-	return localStorage[key] ? JSON.parse(localStorage[key]) : null;
-};
-
-// ==================== Vars =======================
-let scrollStek = 0;
-const wiLists = [
-	'.work-item-list .grid-canvas[role=presentation]', 
-	'.wiql-query-result-grid .grid-canvas[role=presentation]', 
-	'.productbacklog-grid-results .grid-canvas[role=presentation]'
-];
-	
-const TARGET_COLUMNS = [
+// ==================== Custom Vars =======================
+var TARGET_COLUMNS = [
 	{ key: 'Priority', values: ['1'] },
 	{ key: 'Priority', values: ['0'], mode: 'important' },
   { 	
@@ -48,12 +12,13 @@ const TARGET_COLUMNS = [
  	},
 ];
 
-const settings = {
+var settings = {
 	iterationPath: true,
 	iterationPathValue: 2,
 	state: false,
 	severity: true,
 	highlightRows: false,
+	wiStyle: true,
 	
 	keys: {
 		zoom: true,
@@ -64,15 +29,18 @@ const settings = {
 		panelShortkey: false,
 	},
 };
-
 // ==================== Vars =======================
-// @deprecated
-let userData = getLS('userData') || {
-	filter: ''
-};
+
+let scrollStek = 0;
+const wiLists = [
+	'.work-item-list .grid-canvas[role=presentation]', 
+	'.wiql-query-result-grid .grid-canvas[role=presentation]', 
+	'.productbacklog-grid-results .grid-canvas[role=presentation]'
+];
+
 const eventsInstalled = {
 	//textFilter: false,
-	triageView: true,
+	//triageView: true,
 	formatNewView: false,
 	highlightList: false,
 	devPanel: false,
@@ -204,13 +172,19 @@ const keyPanel = (e) => {
 		settings.keys.panelShortkey = $('.dev-panel.showed').length > 0;
 	}
 };
-// 1-5
+// 1-5, 7
 const keyPanelShortkey = (e) => {
 	if (!settings.keys.panelShortkey) return;
-	if (e.which >= 49 && e.which <= 54) {
+	if (e.which >= 49 && e.which <= 54 && !e.altKey) {
 		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows'];
 		changeSetting(settingList[e.which - 49]);
 		$(`#settings_${settingList[e.which - 49]}`)[0].checked = settings[settingList[e.which - 49]];
+	}
+	if (e.which === 55 && !e.altKey) {
+		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle'];
+		changeSetting('wiStyle');
+		$(`#settings_wiStyle`)[0].checked = settings.wiStyle;
+		$('.main-container').toggleClass('dev--work-item-style');
 	}
 };
 
@@ -223,19 +197,6 @@ $(document).keydown(function(e) { //For any other keypress event
 	keyPanel(e);
 	keyPanelShortkey(e);
 
-});
-
-$(document).ready(() => {
-	// Redirect to Н2 team
-	tfsProject.some((project) => {
-		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
-			location.href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
-			return true;
-		}
-		return false;
-	});
-	
-	startInit();
 });
 
 const calcPersent = () => {
@@ -288,63 +249,19 @@ const changeSetting = (key) => {
 	}
 }
 
+const setLS = (key, value) => {
+	localStorage[key] = JSON.stringify(value);
+};
+const getLS = (key, value) => {
+	return localStorage[key] ? JSON.parse(localStorage[key]) : null;
+};
+
 const startInit = (reset = false) => {
-	// @deprecated
-	setTextFilterValue = () => {
-		return;
-		$('.text-filter-input').val(userData.filter || '');
-		$('.text-filter-input').keyup();
-	};
-	// @deprecated
-	setTextFilterEvent = () => {
-		const textFilter = $('.text-filter-input');
-		if (textFilter.length === 0) return;
-		if ($._data(textFilter[0]).events.change 
-			&& $._data(textFilter[0]).events.change.length > 0) {
-			if (eventsInstalled.textFilter) {
-				console.log('Event textFilter installed');
-				setTextFilterValue();
-				return;
-			}
-			setTimeout(() => {
-				if (!eventsInstalled.textFilter) {
-					setTextFilterEvent();
-				} else {
-					console.log('Event textFilter installed');
-					setTextFilterValue();
-				}
-				eventsInstalled.textFilter = true;
-			}, 1000);
-			return;
-		}
-		
-		textFilter.change((value) => {
-			console.log('change ', value.target.value);
-			userData.filter = value.target.value;
-			setLS('userData', userData);
-		});
-		setTimeout(setTextFilterEvent, 1000);
-	};
-	// @deprecated
-	setTriageViewEvent = () => {
-		const triageView = $('.triage-view');
-		const textFilter = $('.text-filter-input');
-		
-		if (triageView.length === 0) return;
-		
-		triageView.bind('beforeShow', function(event) {
-			/*if (!eventsInstalled.textFilter) {
-				setTextFilterEvent();
-			}*/
-			
-			setTextFilterValue();
-	    });
-	    eventsInstalled.triageView = true;
-	    console.log('Event triageView installed');
-	};
+	if (settings.wiStyle) {
+		$('.main-container').toggleClass('dev--work-item-style');
+	}
 	
 	scrollStek = 0;
-
 	formatNewView = () => {
 		if (reset) {
 			eventsInstalled.formatNewView_count = 0;
@@ -366,9 +283,9 @@ const startInit = (reset = false) => {
 				actionMenu.click();
 			}
 			
-			/* start percent */
+			// start percent
 			calcPersent();
-			/* end */
+			// end
 			
 			if ($('[command=actions] [command=work-item-templates]').length 
 				|| !$('[command=work-item-templates]').length) {
@@ -392,7 +309,6 @@ const startInit = (reset = false) => {
 			nextTimer = true;
 		}
 		
-				
 		// Create dev panel
 		if (eventsInstalled.devPanel === false && $('.dev-panel').length === 0) {
 			eventsInstalled.devPanel = true;
@@ -401,20 +317,25 @@ const startInit = (reset = false) => {
 				<div>
 					<label>
 						<input type="checkbox" id="settings_iterationPath" ${settings.iterationPath ? 'checked="checked"' : ''} 
-									onclick="changeSetting('iterationPath')"/> IterationPath
+									onclick="changeSetting('iterationPath')"/> IterationPath (1)
 					</label>
 					<label>
 						<input type="checkbox" id="settings_state" ${settings.state ? 'checked="checked"' : ''} onclick="changeSetting('state')"/> 
-						State
+						State (2)
 					</label>
 					<label>
 						<input type="checkbox" id="settings_severity" ${settings.severity ? 'checked="checked"' : ''} onclick="changeSetting('severity')"/> 
-						Severity
+						Severity (3)
 					</label>
 					<label>
 						<input type="checkbox" id="settings_highlightRows" ${settings.highlightRows ? 'checked="checked"' : ''} 
 									onclick="changeSetting('highlightRows')"/> 
-						HighlightRows
+						HighlightRows (4)
+					</label>
+					<label>
+						<input type="checkbox" id="settings_wiStyle" ${settings.wiStyle ? 'checked="checked"' : ''} 
+									onclick="changeSetting('wiStyle')"/> 
+						Work item style (7)
 					</label>
 				</div>
 			</div>`);
@@ -426,22 +347,7 @@ const startInit = (reset = false) => {
 		}
 	};
 
-	
 	switch (true) {
-		// Если WI или query 
-		// @deprecated
-		/*case location.href.indexOf('/_workitems') > -1:
-			const timer = setInterval(() => {
-				console.log('Full Loaded');
-				//const textFilter = $('.text-filter-input');
-				
-				//setTextFilterEvent();
-		    	//setTriageViewEvent();
-		    	formatNewView();
-		    	if (eventsInstalled.triageView) clearInterval(timer);
-			
-			}, 500);
-			break;*/
 		case location.href.indexOf('/_workitems') > -1:
 		case location.href.indexOf('/_queries') > -1:
 		case location.href.indexOf('/_backlogs') > -1 && reset:
@@ -450,6 +356,18 @@ const startInit = (reset = false) => {
 			formatNewView();
 			break;
 		default:
-			// code
 	}
 }
+
+$(document).ready(() => {
+	// Redirect to Н2 team
+	tfsProject.some((project) => {
+		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
+			location.href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
+			return true;
+		}
+		return false;
+	});
+	
+	startInit();
+});
