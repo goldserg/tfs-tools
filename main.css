@@ -2,7 +2,7 @@
 	table-layout: fixed;
 }
 
-.tbTile:not(.ui-draggable-dragging){
+.dev--work-item-style .tbTile:not(.ui-draggable-dragging){
 	width:auto;
 }
 
@@ -11,22 +11,22 @@
 }
 
 /* Стилизация WI 2018 */
-.form-grid .control {
+.dev--work-item-style .form-grid .control {
     display: flex;
     align-items: center;
 }
-.new-work-item-view .witform-layout .control .workitemlabel.label-control {
+.dev--work-item-style .new-work-item-view .witform-layout .control .workitemlabel.label-control {
     min-width: 130px;
 }
 .percent-wi {
 	float: left;
-    display: flex;
-    height: 25px;
-    align-items: center;
-    font-weight: bold;
-    font-size: large;
-    border-radius: 5px;
-    padding: 0 5px;
+  display: flex;
+  height: 25px;
+  align-items: center;
+  font-weight: bold;
+  font-size: large;
+  border-radius: 5px;
+  padding: 0 5px;
 }
 .percent-wi.percent--0 {
 	background-color: #e2e2e2;
