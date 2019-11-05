@@ -12,21 +12,21 @@
 
 /* Стилизация WI 2018 */
 .dev--work-item-style .form-grid .control {
-    display: flex;
-    align-items: center;
+	display: flex;
+	align-items: center;
 }
 .dev--work-item-style .new-work-item-view .witform-layout .control .workitemlabel.label-control {
-    min-width: 130px;
+	min-width: 130px;
 }
 .percent-wi {
 	float: left;
-  display: flex;
-  height: 25px;
-  align-items: center;
-  font-weight: bold;
-  font-size: large;
-  border-radius: 5px;
-  padding: 0 5px;
+	display: flex;
+	height: 25px;
+	align-items: center;
+	font-weight: bold;
+	font-size: large;
+	border-radius: 5px;
+	padding: 0 5px;
 }
 .percent-wi.percent--0 {
 	background-color: #e2e2e2;
@@ -70,12 +70,12 @@
 	animation: blink 2s steps(5, start) infinite;
 }
 @keyframes blink {
-  0%, 100% {
-    background-color: rgba(255, 0, 0, 0);
-  }
-  50% {
-    background-color: rgba(255, 0, 0, 0.3);
-  }
+	0%, 100% {
+		background-color: rgba(255, 0, 0, 0);
+	}
+	50% {
+		background-color: rgba(255, 0, 0, 0.3);
+	}
 }
 
 
@@ -91,18 +91,23 @@
 
 .dev-panel {
 	position: absolute;
-  background-color: #111;
-  color: #eee;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 0;
-  opacity: 0;
-  transition-duration: 0.7s;
+	background-color: #111;
+	color: #eee;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 0;
+	opacity: 0;
+	transition-duration: 0.7s;
+	z-index: 100000;
+}
+
+.dev-panel label{
+	color: #eee;
 }
 
 .dev-panel.showed {
 	height: 60px;
-  opacity: 1;
+	opacity: 1;
 }
