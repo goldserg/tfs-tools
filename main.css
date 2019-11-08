@@ -103,6 +103,11 @@
 	z-index: 100000;
 }
 
+.dev-panel__header {
+  margin-left: 20px;
+  font-size: large;
+}
+
 .dev-panel label{
 	color: #eee;
 }
