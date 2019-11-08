@@ -31,34 +31,21 @@ main | https://cdn.jsdelivr.net/gh/goldserg/tfs-tools/main.js
 TARGET_COLUMNS = [
 	{ key: 'Priority', values: ['1'] },
 	{ key: 'Priority', values: ['0'], mode: 'important' },
-  { 	
-  	key: 'Assigned To', 
-   	values: [
+	{ key: 'Title', values: ['[ASAP]'], mode: 'important', operator: 'CONTAINS' },
+	{
+		key: 'Assigned To',
+		values: [
 			'g NCIH',
 			'g NCIH Dev',
 			'Золотонос Сергей Борисович',
 		],
- 	},
-];
-
-settings = {
-	iterationPath: true,
-	iterationPathValue: 2,
-	state: false,
-	severity: true,
-	highlightRows: false,
-	wiStyle: true,
-	
-	keys: {
-		zoom: true,
-		main: true,
-		refreshWI: true,
-		copyId: true,
-		panel: true,
-		panelShortkey: false,
-		openTemplate: true,
 	},
-};
+];
 ```
+key - ключ столбца
+values - значения, которые требуется найти
+mode - сейчас принимает либо значение 'important' - тогда строчка будет мигать
+			либо без значения	  - тогда строчка будет полупрозрачной
+operator - (значение по умолчанию 'EQUALS') - текущие допустимые значение ['EQUALS', 'CONTAINS'] - тип поиска значений по столбцам
 
 5) В содержимое css включить содержимое файла https://github.com/goldserg/tfs-tools/blob/master/main.css
