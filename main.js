@@ -2,12 +2,12 @@
 var TARGET_COLUMNS = [
 	{ key: 'Priority', values: ['1'] },
 	{ key: 'Priority', values: ['0'], mode: 'important' },
+	{ key: 'Title', values: ['[ASAP]'], mode: 'important', operator: 'CONTAINS' },
 	{
 		key: 'Assigned To',
 		values: [
 			'g NCIH',
 			'g NCIH Dev',
-			'Золотонос Сергей Борисович',
 		],
 	},
 ];
@@ -62,6 +62,7 @@ const applyPatch = (key, patchFn) => {
 };
 
 const iterationPathPatch = (level = 1) => {
+	if (level === 0) return;
 	applyPatch('Iteration Path', (elem) => {
 		const iterationPath = elem.innerHTML.split('\\');
 		const release = iterationPath.slice(iterationPath.length - level).join('\\');
@@ -91,7 +92,8 @@ const highlightRows = (columns) => {
 			const columnIndex = getColumnIndex(column.key);
 			const columnRef = rowRef.children[columnIndex];
 			if (!columnRef) return false;
-			const matchFound = column.values.some((value) => isEqual(columnRef.innerText, value));
+			const matchFound = column.values.some((value) => 
+				validateByOperator(columnRef.innerText, value, column.operator));
 			if (column.mode && matchFound) {
 				mode = column.mode;
 			}
@@ -106,7 +108,7 @@ const highlightRows = (columns) => {
 };
 
 const applyPatches = () => {
-	settings.iterationPath && iterationPathPatch(settings.iterationPathValue || 1);
+	settings.iterationPath && iterationPathPatch(settings.iterationPathTail);
 	settings.state && statePatch();
 	settings.severity && severityPatch();
 	settings.highlightRows && highlightRows(TARGET_COLUMNS);
@@ -139,12 +141,18 @@ const keyMain = (e) => {
 	!e.altKey && e.which == 192 && startInit(true);
 };
 
-// ALT+5 - click refresh on WI
+// ALT+5 - click refresh on WI or List WI
 const keyRefreshWI = (e) => {
 	if (!settings.keys.refreshWI) return;
 	if (e.altKey && e.which == 53) {
-		$('.workitem-tool-bar .bowtie-navigate-refresh').click();
-		calcPersent();
+		// list 
+		if ($('[command=refresh-work-items]:visible').length) {
+			$('[command=refresh-work-items]:visible').click();
+			// WI
+		} else if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
+			$('.workitem-tool-bar .bowtie-navigate-refresh').click();
+			calcPersent();
+		}
 	}
 };
 
@@ -209,10 +217,11 @@ const keyPanel = (e) => {
 // 1-4, 7 - allow only with opened dev panel: enable/disable options
 const keyPanelShortkey = (e) => {
 	if (!settings.keys.panelShortkey) return;
+	if (e.target.tagName.toLowerCase() === 'input') return true;
 	if (e.which >= 49 && e.which <= 54 && !e.altKey) {
 		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows'];
 		changeSetting(settingList[e.which - 49]);
-		$(`#settings_${settingList[e.which - 49]}`)[0].checked = settings[settingList[e.which - 49]];
+		document.getElementById(`settings.${settingList[e.which - 49]}`).checked = settings[settingList[e.which - 49]];
 	}
 	if (e.which === 55 && !e.altKey) {
 		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle'];
@@ -290,12 +299,18 @@ const attachScrollEvent = () => {
 	}, 100);
 };
 
-const changeSetting = (key) => {
-	if (settings[key] != undefined) {
-		settings[key] = !settings[key];
-	} else {
-		console.warn(`Key ${key} not found in settings`);
-	}
+const changeSetting = (key, value) => {
+	const path = key.split('.');
+	path.reduce((memo, _) => {
+  	if (memo.hasOwnProperty(_)) {
+    	if (typeof memo[_] != 'object') {
+    		memo[_] = value != undefined ? value : !memo[_];
+    		setLS('settings', settings);
+    	}
+			return memo[_];
+  	}
+  	console.warn(`Key ${key} not found in ${settings}`);
+	}, settings);
 }
 
 const safeExec = (func, condition, settings = {timeout: 50, delta: 10, maxStep: 50}, i = 0) => {
@@ -304,17 +319,26 @@ const safeExec = (func, condition, settings = {timeout: 50, delta: 10, maxStep: 
 		else func();
 	}, settings.timeout + i * settings.delta);
 };
-const isEqual = (a, b) => {
-	return a.trim().toLowerCase() === b.trim().toLowerCase();
+const validateByOperator = (a, b, operator = 'EQUALS') => {
+	switch (operator.toUpperCase()) {
+		case 'EQUALS':
+			return a.trim().toLowerCase() === b.trim().toLowerCase();
+		case 'CONTAINS':
+			return a.trim().toLowerCase().includes(b.trim().toLowerCase());
+	}
+	
 }
 const setLS = (key, value) => {
 	localStorage[key] = JSON.stringify(value);
 };
-const getLS = (key, value) => {
+const getLS = (key) => {
 	return localStorage[key] ? JSON.parse(localStorage[key]) : null;
 };
 
 const startInit = (reset = false) => {
+	// Load settings
+	settings = getLS('settings') || settings;
+	
 	if (settings.wiStyle) {
 		$(document.body).toggleClass('dev--work-item-style');
 	}
@@ -362,29 +386,58 @@ const startInit = (reset = false) => {
 				if (eventsInstalled.devPanel === false) {
 					eventsInstalled.devPanel = true;
 					$(document.body).append(`<div class="dev-panel">
-						<div>Настройки</div>
+						<div class="dev-panel__header">Настройки</div>
 						<div>
 							<label>
-								<input type="checkbox" id="settings_iterationPath" ${settings.iterationPath ? 'checked="checked"' : ''} 
+								<input type="checkbox" id="settings.iterationPath" ${settings.iterationPath ? 'checked="checked"' : ''} 
 											onclick="changeSetting('iterationPath')"/> IterationPath (1)
 							</label>
 							<label>
-								<input type="checkbox" id="settings_state" ${settings.state ? 'checked="checked"' : ''} onclick="changeSetting('state')"/> 
+								IterationPathTail <input type="number" min="0" max="4" id="settings.iterationPathTail" value="${settings.iterationPathTail}" 
+											onchange="changeSetting('iterationPathTail', Number(this.value))"/> 
+							</label>
+							<label>
+								<input type="checkbox" id="settings.state" ${settings.state ? 'checked="checked"' : ''} onclick="changeSetting('state')"/> 
 								State (2)
 							</label>
 							<label>
-								<input type="checkbox" id="settings_severity" ${settings.severity ? 'checked="checked"' : ''} onclick="changeSetting('severity')"/> 
+								<input type="checkbox" id="settings.severity" ${settings.severity ? 'checked="checked"' : ''} onclick="changeSetting('severity')"/> 
 								Severity (3)
 							</label>
 							<label>
-								<input type="checkbox" id="settings_highlightRows" ${settings.highlightRows ? 'checked="checked"' : ''} 
+								<input type="checkbox" id="settings.highlightRows" ${settings.highlightRows ? 'checked="checked"' : ''} 
 											onclick="changeSetting('highlightRows')"/> 
 								HighlightRows (4)
 							</label>
 							<label>
-								<input type="checkbox" id="settings_wiStyle" ${settings.wiStyle ? 'checked="checked"' : ''} 
+								<input type="checkbox" id="settings.wiStyle" ${settings.wiStyle ? 'checked="checked"' : ''} 
 											onclick="changeSetting('wiStyle')"/> 
 								Work item style (7)
+							</label>
+						</div>
+						<div class="dev-panel__header">HotKeys</div>
+						<div>
+							<label>
+								<input type="checkbox" id="settings.keys.zoom" ${settings.keys.zoom ? 'checked="checked"' : ''} 
+											onclick="changeSetting('keys.zoom')"/> Я=z (Zoom)
+							</label>
+							<label>
+								<input type="checkbox" id="settings.keys.refreshWI" ${settings.keys.refreshWI ? 'checked="checked"' : ''} onclick="changeSetting('keys.refreshWI')"/> 
+								Alt+5
+							</label>
+							<label>
+								<input type="checkbox" id="settings.keys.copyId" ${settings.keys.copyId ? 'checked="checked"' : ''} onclick="changeSetting('keys.copyId')"/> 
+								ALT+SHIFT+X
+							</label>
+							<label>
+								<input type="checkbox" id="settings.keys.openTemplate" ${settings.keys.openTemplate ? 'checked="checked"' : ''} 
+											onclick="changeSetting('keys.openTemplate')"/> 
+								CTRL+ALT+T
+							</label>
+							<label>
+								<input type="checkbox" id="settings.keys.addTags" ${settings.keys.addTags ? 'checked="checked"' : ''} 
+											onclick="changeSetting('keys.addTags')"/> 
+								CTRL+ALT+A
 							</label>
 						</div>
 					</div>`);
