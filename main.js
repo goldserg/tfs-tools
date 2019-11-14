@@ -2,7 +2,7 @@
 var TARGET_COLUMNS = [
 	{ key: 'Priority', values: ['1'] },
 	{ key: 'Priority', values: ['0'], mode: 'important' },
-	{ key: 'Title', values: ['[ASAP]'], mode: 'important', operator: 'CONTAINS' },
+	{ key: 'Title', values: ['[ASAP]', '[БОЙ]'], mode: 'important', operator: 'CONTAINS' },
 	{
 		key: 'Assigned To',
 		values: [
@@ -14,7 +14,7 @@ var TARGET_COLUMNS = [
 
 var settings = {
 	iterationPath: true,
-	iterationPathValue: 2,
+	iterationPathTail: 2,
 	state: false,
 	severity: true,
 	highlightRows: false,
@@ -48,17 +48,24 @@ const tfsProject = ['FORIS_Mobile', 'a0bf1feb-f7e0-4f18-9f30-7c4d9ec8d5d9'];
 const tfsTeam = 'NCIH 2.0 Team';
 // ==================== Грушин =======================
 
-const getColumnIndex = (key) => {
-	const headerRefList = document.querySelectorAll('.grid-header-column');
+const getColumnIndex = (key, gridN = 0) => {
+	const headerRefList = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN})`).parent().find('.grid-header-column');
+	//document.querySelectorAll('.grid-header-column');
 	const headerRefs = Array.from(headerRefList);
 	const headerRef = headerRefs.find((header) => header.attributes['aria-label'].value === key);
 	return headerRefs.indexOf(headerRef);
 };
 
 const applyPatch = (key, patchFn) => {
-	const index  = getColumnIndex(key);
-	const elementRefs = document.querySelectorAll(`.grid-cell:nth-child(${index + 1})`);
-	elementRefs.forEach(patchFn);
+	document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
+		const index  = getColumnIndex(key, gridN);
+  	const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-cell:nth-child(${index + 1})`);
+  	elementRefs.length && elementRefs.toArray().forEach(patchFn);
+	});
+	
+	/*const index  = getColumnIndex(key);
+	document.querySelectorAll(`.grid-cell:nth-child(${index + 1})`);
+	elementRefs.forEach(patchFn);*/
 };
 
 const iterationPathPatch = (level = 1) => {
@@ -85,8 +92,31 @@ const severityPatch = () => {
 
 const highlightRows = (columns) => {
 	if (columns.length === 0) return;
-	const rowRefs = document.querySelectorAll('.grid-row.grid-row-normal');
-	rowRefs.forEach((rowRef) => {
+	document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
+		const rowRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row.grid-row-normal`);
+  	
+  	rowRefs.length && rowRefs.toArray().forEach((rowRef) => {
+			let mode = true;
+			const needToBeHiglighted = columns.some((column) => {
+				const columnIndex = getColumnIndex(column.key);
+				const columnRef = rowRef.children[columnIndex];
+				if (!columnRef) return false;
+				const matchFound = column.values.some((value) => 
+					validateByOperator(columnRef.innerText, value, column.operator));
+				if (column.mode && matchFound) {
+					mode = column.mode;
+				}
+				return matchFound;
+			});
+			if (mode === 'important') {
+				rowRef.classList.add('row--very-important');
+			}
+			if (needToBeHiglighted) return;
+			rowRef.classList.add('row--not-important');
+		});
+	});
+	//const rowRefs = document.querySelectorAll('.grid-row.grid-row-normal');
+	/*rowRefs.forEach((rowRef) => {
 		let mode = true;
 		const needToBeHiglighted = columns.some((column) => {
 			const columnIndex = getColumnIndex(column.key);
@@ -104,7 +134,7 @@ const highlightRows = (columns) => {
 		}
 		if (needToBeHiglighted) return;
 		rowRef.classList.add('row--not-important');
-	});
+	});*/
 };
 
 const applyPatches = () => {
@@ -226,7 +256,7 @@ const keyPanelShortkey = (e) => {
 	if (e.which === 55 && !e.altKey) {
 		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle'];
 		changeSetting('wiStyle');
-		$(`#settings_wiStyle`)[0].checked = settings.wiStyle;
+		document.getElementById(`settings.wiStyle`).checked = settings.wiStyle;
 		$(document.body).toggleClass('dev--work-item-style');
 	}
 };
@@ -260,7 +290,7 @@ $(document).ready(() => {
 const calcPersent = () => {
 	var containerHeader = $('.work-item-form-header-controls-container');
 	var percentTask = $('.percent-wi');
-	const completedWorkField = $('[aria-label="Completed Work"]:visible');
+	const completedWorkField = $('input[aria-label="Completed Work"]:visible');
 	if (percentTask.length > 0) {
 		percentTask.remove();
 		percentTask.length = 0;
