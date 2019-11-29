@@ -34,9 +34,9 @@ var settings = {
 // ==================== Vars =======================
 let scrollStek = 0;
 const wiLists = [
-	'.work-item-list .grid-canvas[role=presentation]',
-	'.wiql-query-result-grid .grid-canvas[role=presentation]',
-	'.productbacklog-grid-results .grid-canvas[role=presentation]'
+	'.work-item-list .grid-canvas[role=presentation]:visible',
+	'.wiql-query-result-grid .grid-canvas[role=presentation]:visible',
+	'.productbacklog-grid-results .grid-canvas[role=presentation]:visible'
 ];
 
 const eventsInstalled = {
@@ -211,6 +211,21 @@ const keyOpenTemplate = (e) => {
 	}
 };
 
+
+// CTRL+ALT+T CTRL+ALT+С - open templates menu
+const keyCloseWi = (e) => {
+	if (!settings.keys.openTemplate) return;
+	if (e.ctrlKey && e.altKey && e.which == 67) {
+		// Если открыт шаблон
+		const menuItem = '[data-parent*="_work-item-templates"] [role=menuitem] [role=button]:contains("Close"):visible';
+		
+		safeExec(
+			() => $(menuItem).length !== 0,
+			() => { $(menuItem).parent().eq(0).click() }
+		);
+	}
+};
+
 // CTRL+ALT+A - focus tags field
 const keyAddTags = (e) => {
 	if (!settings.keys.addTags) return;
@@ -224,15 +239,40 @@ const keyAddTags = (e) => {
 const keyCopyId = (e) => {
 	if (!settings.keys.copyId) return;
 	if (e.altKey && e.shiftKey && e.which == 88) {
-		document.designMode = 'on';
-		const el = document.createElement('textarea');
-		el.value = $('.work-item-form-id:visible').text();
-		el.textContent = el.value;
-		document.body.appendChild(el);
-		el.select();
-		document.execCommand('copy');
-		document.body.removeChild(el);
-		document.designMode = 'off';
+		
+		// WI
+		if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
+			document.designMode = 'on';
+			const el = document.createElement('textarea');
+			el.value = $('.work-item-form-id:visible').text();
+			el.textContent = el.value;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+			document.designMode = 'off';
+		} else // list 
+		if ($(wiLists.join(', ')).length) {
+			//$('.grid-row-selected:visible')
+			document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
+				const index  = getColumnIndex('ID', gridN);
+		  	const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${index + 1})`);
+		  	if (elementRefs.length) {
+		  		const value = elementRefs.toArray().map(_ => _.innerText).join(',');
+		  		document.designMode = 'on';
+					const el = document.createElement('textarea');
+					el.value = value;
+					el.textContent = el.value;
+					document.body.appendChild(el);
+					el.select();
+					document.execCommand('copy');
+					document.body.removeChild(el);
+					document.designMode = 'off';
+		  	}
+			});
+		} 
+		
+		
 	}
 };
 
@@ -271,6 +311,7 @@ $(document).keydown(function(e) { //For any other keypress event
 	keyPanelShortkey(e);
 	keyOpenTemplate(e);
 	keyAddTags(e);
+	keyCloseWi(e);
 
 });
 
@@ -278,10 +319,18 @@ $(document).ready(() => {
 	// Redirect to Н2 team
 	tfsProject.some((project) => {
 		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
-			location.href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
-			return true;
+			setTimeout(() => {
+				let href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
+				/*if (href.indexOf(`_workitems/edit/`) > -1) {
+					href = href.replace(/(.*?\/_workitems)\/edit\/(\d+)/, '$1?id=$2&_a=edit');
+				}*/
+				
+				location.href = href;
+			}, 1500);
+			
+			return;
 		}
-		return false;
+		//return false;
 	});
 
 	startInit();
@@ -368,6 +417,7 @@ const getLS = (key) => {
 const startInit = (reset = false) => {
 	// Load settings
 	settings = getLS('settings') || settings;
+	settings.keys.panelShortkey = false;
 	
 	if (settings.wiStyle) {
 		$(document.body).toggleClass('dev--work-item-style');
