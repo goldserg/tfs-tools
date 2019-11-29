@@ -12,7 +12,11 @@ Alt+5 - Дублирование кнопки обновить в карточк
 
 CTRL+Alt+A - Фокус на поле установки тега с предустановленным префиксом
 
+SHIFT+Alt+X - Копирование id WorkItem или списка WorkItem через запятую из таблицы 
+
 CTRL+Alt+T - Открыть меню шаблонов (работает из любой области где есть шаблоны)
+
+CTRL+Alt+T CTRL+Alt+C - Открыть меню шаблонов и применить шаблон "Close" (работает из любой области где есть шаблоны)
 
 # Подключение
 1) Установить плагин https://chrome.google.com/webstore/detail/user-javascript-and-css/nbhcbdghjpllgmfilhnhkllmkecfmpld
@@ -37,7 +41,6 @@ TARGET_COLUMNS = [
 		values: [
 			'g NCIH',
 			'g NCIH Dev',
-			'Золотонос Сергей Борисович',
 		],
 	},
 ];
