@@ -419,7 +419,7 @@ const startInit = (reset = false) => {
 	settings = getLS('settings') || settings;
 	settings.keys.panelShortkey = false;
 	
-	if (settings.wiStyle) {
+	if (settings.wiStyle && !$('body.dev--work-item-style').length) {
 		$(document.body).toggleClass('dev--work-item-style');
 	}
 
