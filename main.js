@@ -178,7 +178,11 @@ const keyRefreshWI = (e) => {
 		// list 
 		if ($('[command=refresh-work-items]:visible').length) {
 			$('[command=refresh-work-items]:visible').click();
-			// WI
+			// formatNewView();
+		} else if ($('[data-command-key=refresh-work-items]:visible').length) {
+			$('[data-command-key=refresh-work-items]:visible').click();
+			// formatNewView();
+		// WI
 		} else if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
 			$('.workitem-tool-bar .bowtie-navigate-refresh').click();
 			calcPersent();
@@ -441,6 +445,16 @@ const startInit = (reset = false) => {
 				calcPersent();
 				eventsInstalled.formatNewView = true;
 				console.log('Event formatNewView installed');
+			},
+			{timeout: 500},
+		);
+		
+		// excelude some element for new WI
+		safeExec(
+			() => $('.form-grid .control:visible').find('.label-text-control:contains(Description:)').eq(0).length > 0,
+			() => {
+				$('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control').addClass('old-style');
+				console.log($('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control'));
 			},
 			{timeout: 500},
 		);
