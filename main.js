@@ -392,7 +392,8 @@ const changeSetting = (key, value) => {
 	}, settings);
 }
 
-const safeExec = (func, condition, settings = {timeout: 50, delta: 10, maxStep: 50}, i = 0) => {
+const safeExec = (condition, func, settings, i = 0) => {
+	settings = $.extend({timeout: 50, delta: 10, maxStep: 50}, settings);
 	setTimeout(() => {
 		if (!condition() && i < settings.maxStep) safeExec(func, condition, ++i);
 		else func();
