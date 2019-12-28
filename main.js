@@ -317,21 +317,17 @@ $(document).keydown(function(e) { //For any other keypress event
 
 $(document).ready(() => {
 	// Redirect to Н2 team
-	tfsProject.some((project) => {
+	/*tfsProject.some((project) => {
 		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
 			setTimeout(() => {
 				let href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
-				/*if (href.indexOf(`_workitems/edit/`) > -1) {
-					href = href.replace(/(.*?\/_workitems)\/edit\/(\d+)/, '$1?id=$2&_a=edit');
-				}*/
-				
+
 				location.href = href;
 			}, 1500);
 			
 			return;
 		}
-		//return false;
-	});
+	});*/
 
 	startInit();
 });
