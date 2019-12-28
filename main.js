@@ -529,6 +529,7 @@ const startInit = (reset = false) => {
 		case location.href.indexOf('/_workitems') > -1:
 		case location.href.indexOf('/_queries') > -1:
 		case location.href.indexOf('/_backlogs') > -1:
+		case location.href.indexOf('/_sprints') > -1:
 		case location.href.indexOf('/_dashboards') > -1:
 			console.log('Full Loaded');
 			formatNewView();
