@@ -321,25 +321,25 @@ $(document).keydown(function(e) { //For any other keypress event
 
 $(document).ready(() => {
 	// Redirect to Н2 team
-	/*tfsProject.some((project) => {
+/*	tfsProject.some((project) => {
 		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
 			setTimeout(() => {
 				let href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
 
 				location.href = href;
-			}, 1500);
+			}, 2500);
 			
 			return;
 		}
-	});*/
-
+	});
+*/
 	startInit();
 });
 
 const calcPersent = () => {
 	var containerHeader = $('.work-item-form-header-controls-container');
 	var percentTask = $('.percent-wi');
-	const completedWorkField = $('input[aria-label="Completed Work"]:visible');
+	const completedWorkField = $('.workitemcontrol-label:contains(Completed work):visible');
 	if (percentTask.length > 0) {
 		percentTask.remove();
 		percentTask.length = 0;
@@ -349,12 +349,14 @@ const calcPersent = () => {
 		const isLT = $('.info-text-wrapper a:visible:last').text().indexOf('LeadTask') > -1;
 		const fieldChildren = isLT ? 'Children ' : '';
 		const configLabel = {
-			completedWork: `input[aria-label="${fieldChildren}Completed Work"]:visible`,
-			remainingWork: `input[aria-label="${fieldChildren}Remaining Work"]:visible`,
+			//completedWork: `input[aria-label="${fieldChildren}Completed Work"]:visible`,
+			//remainingWork: `input[aria-label="${fieldChildren}Remaining Work"]:visible`,
+			completedWork: $(`.workitemcontrol-label:contains(${fieldChildren}Completed work)`).eq(0).parents('.control').find('input'),
+			remainingWork: $(`.workitemcontrol-label:contains(${fieldChildren}Remaining work)`).eq(0).parents('.control').find('input'),
 		};
 
-		var completedWork = $(configLabel.completedWork).length ? $(configLabel.completedWork).val() : 0;
-		var remainingWork = $(configLabel.remainingWork).length ? $(configLabel.remainingWork).val() : 0;
+		var completedWork = configLabel.completedWork.length ? configLabel.completedWork.val() || 0 : 0;
+		var remainingWork = configLabel.remainingWork.length ? configLabel.remainingWork.val() || 0 : 0;
 		completedWork = Number(completedWork.replace(',', '.'));
 		remainingWork = Number(remainingWork.replace(',', '.'));
 
@@ -395,7 +397,7 @@ const changeSetting = (key, value) => {
 const safeExec = (condition, func, settings, i = 0) => {
 	settings = $.extend({timeout: 50, delta: 10, maxStep: 50}, settings);
 	setTimeout(() => {
-		if (!condition() && i < settings.maxStep) safeExec(func, condition, ++i);
+		if (!condition() && i < settings.maxStep) safeExec(func, condition, settings, ++i);
 		else func();
 	}, settings.timeout + i * settings.delta);
 };
