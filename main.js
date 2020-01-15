@@ -448,14 +448,14 @@ const startInit = (reset = false) => {
 		);
 		
 		// excelude some element for new WI
-		safeExec(
+		/*safeExec(
 			() => $('.form-grid .control:visible').find('.label-text-control:contains(Description:)').eq(0).length > 0,
 			() => {
 				$('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control').addClass('old-style');
 				console.log($('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control'));
 			},
 			{timeout: 500},
-		);
+		);*/
 
 		// Highlight
 		safeExec(

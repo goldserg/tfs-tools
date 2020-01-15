@@ -15,6 +15,9 @@
 	display: flex;
 	align-items: center;
 }
+.section1.wide-section .tfs-collapsible-content .control {
+	display: inherit !important;
+}
 .dev--work-item-style .new-work-item-view .witform-layout .control .workitemlabel.label-control {
 	min-width: 130px;
 }
