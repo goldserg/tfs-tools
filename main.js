@@ -319,23 +319,6 @@ $(document).keydown(function(e) { //For any other keypress event
 
 });
 
-$(document).ready(() => {
-	// Redirect to Н2 team
-/*	tfsProject.some((project) => {
-		if (location.href.indexOf(`STS/${project}/_workitems`) > -1) {
-			setTimeout(() => {
-				let href = location.href.replace(`${project}/`, `${tfsProject[0]}/${tfsTeam}/`);
-
-				location.href = href;
-			}, 2500);
-			
-			return;
-		}
-	});
-*/
-	startInit();
-});
-
 const calcPersent = () => {
 	var containerHeader = $('.work-item-form-header-controls-container');
 	var percentTask = $('.percent-wi');
@@ -553,3 +536,8 @@ const startInit = (reset = false) => {
 		default:
 	}
 }
+
+
+$(document).ready(() => {
+	startInit();
+});
