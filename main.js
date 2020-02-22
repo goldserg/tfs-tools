@@ -215,6 +215,18 @@ const keyOpenTemplate = (e) => {
 	}
 };
 
+// CTRL+ALT+L - click Assigned
+const keyAssignedClick = (e) => {
+	//if (!settings.keys.openTemplate) return;
+	if (e.ctrlKey && e.altKey && e.which == 76) {
+
+		safeExec(
+			() => $('.identity-picker-resolved').length !== 0,
+			() => { $('.identity-picker-resolved').click() }
+		);
+	}
+};
+
 
 // CTRL+ALT+T CTRL+ALT+С - open templates menu
 const keyCloseWi = (e) => {
@@ -316,6 +328,7 @@ $(document).keydown(function(e) { //For any other keypress event
 	keyOpenTemplate(e);
 	keyAddTags(e);
 	keyCloseWi(e);
+	keyAssignedClick(e);
 
 });
 
@@ -330,16 +343,16 @@ const calcPersent = () => {
 
 	if (percentTask.length === 0 && completedWorkField.length) {
 		const isLT = $('.info-text-wrapper a:visible:last').text().indexOf('LeadTask') > -1;
-		const fieldChildren = isLT ? 'Children ' : '';
+		const fieldChildren = isLT ? ' By Children' : '';
 		const configLabel = {
 			//completedWork: `input[aria-label="${fieldChildren}Completed Work"]:visible`,
 			//remainingWork: `input[aria-label="${fieldChildren}Remaining Work"]:visible`,
-			completedWork: $(`.workitemcontrol-label:contains(${fieldChildren}Completed work)`).eq(0).parents('.control').find('input'),
-			remainingWork: $(`.workitemcontrol-label:contains(${fieldChildren}Remaining work)`).eq(0).parents('.control').find('input'),
+			completedWork: $(`.workitemcontrol-label:contains(Completed work${fieldChildren})`).eq(0).parents('.control').find('input'),
+			remainingWork: $(`.workitemcontrol-label:contains(Remaining work${fieldChildren})`).eq(0).parents('.control').find('input'),
 		};
 
-		var completedWork = configLabel.completedWork.length ? configLabel.completedWork.val() || 0 : 0;
-		var remainingWork = configLabel.remainingWork.length ? configLabel.remainingWork.val() || 0 : 0;
+		var completedWork = configLabel.completedWork.length ? configLabel.completedWork.val() || '0' : '0';
+		var remainingWork = configLabel.remainingWork.length ? configLabel.remainingWork.val() || '0' : '0';
 		completedWork = Number(completedWork.replace(',', '.'));
 		remainingWork = Number(remainingWork.replace(',', '.'));
 
@@ -429,16 +442,6 @@ const startInit = (reset = false) => {
 			},
 			{timeout: 500},
 		);
-		
-		// excelude some element for new WI
-		/*safeExec(
-			() => $('.form-grid .control:visible').find('.label-text-control:contains(Description:)').eq(0).length > 0,
-			() => {
-				$('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control').addClass('old-style');
-				console.log($('.form-grid .control:visible').find('.label-text-control:contains(Description:)').parents('.control'));
-			},
-			{timeout: 500},
-		);*/
 
 		// Highlight
 		safeExec(
