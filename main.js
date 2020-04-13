@@ -29,6 +29,7 @@ var settings = {
 		panelShortkey: false,
 		openTemplate: true,
 		addTags: true,
+		expandCollapse: true,
 	},
 };
 // ==================== Vars =======================
@@ -178,9 +179,11 @@ const keyRefreshWI = (e) => {
 		// list 
 		if ($('[command=refresh-work-items]:visible').length) {
 			$('[command=refresh-work-items]:visible').click();
+			setTimeout(applyPatches, 1000);
 			// formatNewView();
 		} else if ($('[data-command-key=refresh-work-items]:visible').length) {
 			$('[data-command-key=refresh-work-items]:visible').click();
+			setTimeout(applyPatches, 1000);
 			// formatNewView();
 		// WI
 		} else if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
@@ -248,6 +251,24 @@ const keyAddTags = (e) => {
 	if (e.ctrlKey && e.altKey && e.which == 65) {
 		$('.tags-add-button').click();
 		$('.tags-items-container .tags-input').val('VM');
+	}
+};
+
+// ALT+"+" ALT+"-" - expand/collapse tree
+const keyExpandCollapse = (e) => {
+	if (!settings.keys.expandCollapse) return;
+	if (e.altKey && [189, 108, 187, 107].indexOf(e.which) > -1) {
+		const action = 
+			[189, 108].indexOf(e.which) > -1 
+				? 'collapse' 
+				: 'expand';
+		const actionsQuery = `.expand-collapse-icons-header .${action}-icon`;
+		
+		safeExec(
+			() => $(actionsQuery).length !== 0,
+			() => { $(actionsQuery).click() }
+		);
+
 	}
 };
 
@@ -327,6 +348,7 @@ $(document).keydown(function(e) { //For any other keypress event
 	keyPanelShortkey(e);
 	keyOpenTemplate(e);
 	keyAddTags(e);
+	keyExpandCollapse(e);
 	keyCloseWi(e);
 	keyAssignedClick(e);
 
@@ -415,7 +437,17 @@ const getLS = (key) => {
 
 const startInit = (reset = false) => {
 	// Load settings
-	settings = getLS('settings') || settings;
+	if (getLS('settings')) {
+		const settingsOrig = $.extend(true, {}, settings);
+		const keys = $.extend(true, settings.keys, getLS('settings').keys);
+		settings = $.extend(settings, getLS('settings'));
+		settings.keys = keys;
+		if (settings != settingsOrig) {
+			setLS('settings', settings);
+			console.log('Обновлены настройки', settings)
+		}
+	}
+	//settings = getLS('settings') || settings;
 	settings.keys.panelShortkey = false;
 	
 	if (settings.wiStyle && !$('body.dev--work-item-style').length) {
@@ -535,6 +567,17 @@ const startInit = (reset = false) => {
 		case location.href.indexOf('/_dashboards') > -1:
 			console.log('Full Loaded');
 			formatNewView();
+			break;
+			// Скрытие предупреждений для ретроплагина
+		case location.href.indexOf('_apps/hub/ms-devlabs.team-retrospectives.home') > -1:
+			console.log('Retro Loaded');
+			safeExec(
+				() => $('.external-content--iframe').contents().find('.ms-MessageBar-multiline').length > 0,
+				() => {
+					$('.external-content--iframe').contents().find('.ms-MessageBar-multiline button').click();
+				},
+				{timeout: 500},
+			);
 			break;
 		default:
 	}
