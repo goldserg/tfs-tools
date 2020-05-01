@@ -145,6 +145,35 @@ const applyPatches = () => {
 	settings.highlightRows && highlightRows(TARGET_COLUMNS);
 };
 
+// ============= CopyToClipboard ==============================
+ function copyToClipboard(n, t) {
+  var u = !1, r, f, i;
+  if (t || window.clipboardData === undefined) {
+      i = $("<div/>");
+      try {
+          i.css("background-color", "inherit");
+          t ? i.append(n) : (i.css("white-space", "pre"),
+          i.text(n));
+          document.body.createTextRange ? (i.prependTo($("body")),
+          r = document.body.createTextRange(),
+          r.moveToElementText(i[0]),
+          r.select(),
+          u = r.execCommand("copy")) : document.createRange && window.getSelection && (i.appendTo($("body")),
+          r = document.createRange(),
+          f = window.getSelection(),
+          f.removeAllRanges(),
+          r.selectNodeContents(i[0]),
+          f.addRange(r),
+          u = document.execCommand("copy"))
+      } finally {
+          i.remove()
+      }
+  } else
+      window.clipboardData.setData(o, n),
+      u = !0;
+  return u
+}
+    
 // ============= WI ==============================
 
 // "Я", "я" => "Z", "z"
@@ -231,7 +260,7 @@ const keyAssignedClick = (e) => {
 };
 
 
-// CTRL+ALT+T CTRL+ALT+С - open templates menu
+// CTRL+ALT+T CTRL+ALT+С - apply template "Close"
 const keyCloseWi = (e) => {
 	if (!settings.keys.openTemplate) return;
 	if (e.ctrlKey && e.altKey && e.which == 67) {
@@ -308,8 +337,57 @@ const keyCopyId = (e) => {
 		  	}
 			});
 		} 
+	}
+};
+
+// ALT+SHIFT+C - copy WI with Title
+const keyCopyWI = (e) => {
+	if (!settings.keys.copyId) return;
+	if (e.altKey && e.shiftKey && e.which == 67) {
 		
-		
+		// WI cancel custom
+		if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
+			return e;
+		} else // list 
+		if ($(wiLists.join(', ')).length) {
+			//$('.grid-row-selected:visible')
+			document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
+				const colIndex = {
+					id: getColumnIndex('ID', gridN), 
+					title: getColumnIndex('Title', gridN)
+				};
+		  	const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
+		  	const elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
+
+		  	if (elementListId.length && elementListId.length === elementListTitle.length) {
+		  		const isHtml = true;
+		  		const elementListTitleArr = elementListTitle.toArray();
+		  		const value = elementListId.toArray().map((_, i) => {
+		  			const link = $('.work-item-title-link', elementListTitleArr[i]).attr('href');
+		  			const id = _.innerText;
+		  			const title = $('.work-item-title-link', elementListTitleArr[i]).text();
+		  			const type = $('.work-item-type-icon-host i', elementListTitleArr[i]).attr('aria-label');
+		  			
+		  			const result = `<span style='font-size:11pt; background-color: inherit; color: inherit;'><a href='${link}' target='_blank' rel='noopener noreferrer'>${type} ${id}<\/a><span style='font-size:11pt; background-color: inherit; color: inherit;'>: ${title}<\/span><\/span>`;
+		  		
+		  			return result;
+		  		}).join(isHtml ? '<br/>' : '\n\r');
+		  		
+		  		copyToClipboard(value, isHtml);
+		  		/*
+		  		document.designMode = 'on';
+					const el = document.createElement('textarea');
+					el.value = value;
+					el.textContent = el.value;
+					document.body.appendChild(el);
+					el.select();
+					document.execCommand('copy');
+					document.body.removeChild(el);
+					document.designMode = 'off';
+					*/
+		  	}
+			});
+		} 
 	}
 };
 
@@ -344,6 +422,7 @@ $(document).keydown(function(e) { //For any other keypress event
 	keyMain(e);
 	keyRefreshWI(e);
 	keyCopyId(e);
+	keyCopyWI(e);
 	keyPanel(e);
 	keyPanelShortkey(e);
 	keyOpenTemplate(e);
