@@ -357,7 +357,10 @@ const keyCopyWI = (e) => {
 					title: getColumnIndex('Title', gridN)
 				};
 		  	const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
-		  	const elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
+		  	let elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
+			if (elementListTitle.length === 0) {
+				elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1})`);
+			}
 
 		  	if (elementListId.length && elementListId.length === elementListTitle.length) {
 		  		const isHtml = true;
