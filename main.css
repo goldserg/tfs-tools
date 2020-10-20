@@ -2,6 +2,10 @@
 	table-layout: fixed;
 }
 
+.maximized-grid-group .plaintextcontrol {
+	height: 70vh !important;
+}
+
 .dev--work-item-style .tbTile:not(.ui-draggable-dragging){
 	width:auto;
 }

@@ -358,10 +358,10 @@ const keyCopyWI = (e) => {
 				};
 		  	const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
 		  	let elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
-			if (elementListTitle.length === 0) {
-				elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1})`);
-			}
-
+				if (elementListTitle.length === 0) {
+					elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1})`);
+				}
+			
 		  	if (elementListId.length && elementListId.length === elementListTitle.length) {
 		  		const isHtml = true;
 		  		const elementListTitleArr = elementListTitle.toArray();
@@ -469,6 +469,101 @@ const calcPersent = () => {
 	}
 }
 
+const addAdditionalLinksButton = () => {
+	var containerHeader = $('.add-links-container:eq(1) > div');
+	var newButton = $('.add-new-parent-button');
+	if (newButton.length > 0) {
+		return;
+		//percentTask.remove();
+		//percentTask.length = 0;
+	}
+
+		containerHeader.append(`<button class="add-new-item-component-button add-new-parent-button" tabindex="0"><span class="text">Par</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-up root-66" role="presentation"></i></button>
+		<button class="add-new-item-component-button add-new-child-button" tabindex="0"><span class="text">Child</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-down root-66" role="presentation"></i></button>
+		<button class="add-new-item-component-button add-new-related-button" tabindex="0"><span class="text">Rel</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-right root-66" role="presentation"></i></button>
+		`);
+		
+		$('.add-links-container:eq(1) .add-new-item-component-button:eq(0) .text').text('Добавить');
+		
+		$('.add-new-parent-button').on('click', () => {
+			addNewLinkEvent('Parent')
+		});
+		$('.add-new-child-button').on('click', () => {
+			addNewLinkEvent('Child')
+		});
+		$('.add-new-related-button').on('click', () => {
+			addNewLinkEvent('Related')
+		});
+}
+
+
+const addNewLinkEvent = (linkType) => {
+	$('.add-links-container:eq(1) .add-new-item-component-button:eq(0):visible').click();
+	var id = null;
+	navigator.clipboard.readText().then(clipText => id = clipText);
+	var deep = [null, false,false,false,false,false];
+	const checkDeep = (level) => deep[level];
+
+	safeExec(
+		() => $('.ms-ContextualMenu-Callout').length > 0,
+		() => {
+			$('.ms-ContextualMenu-list.is-open li:eq(0) button').click();
+
+			deep[1] = true;
+			safeExec(
+				() => $('input[data-is-interactable] ~ button:visible').length > 0,
+				() => {
+					$('input[data-is-interactable] ~ button').click();
+
+					deep[2] = true;
+					safeExec(
+						() => $(`.ms-ComboBox-option[aria-label=${linkType}]`).length > 0,
+						() => {
+							$(`.ms-ComboBox-option[aria-label=${linkType}]`).click()
+
+							deep[3] = true;
+							safeExec(
+								() => id != null,
+								() => {
+									$('#work-item-ids').val(id);
+									$('#work-item-ids').click();
+
+									deep[4] = true;
+									safeExec(
+										() => $('.ms-Suggestions-item').length > 0,
+										() => {
+											if ($('.ms-Suggestions-item').length === 0)
+												return;
+											$('.ms-Suggestions-item > button').click();
+											deep[5] = true;
+											
+											safeExec(
+												() => $('#ok:not([disabled])').length > 0,
+												() => {
+													$('#ok').click();
+													deep[6] = true;
+												},
+												{timeout: 500, maxStep: 20, forceExit: () => checkDeep(6)},
+											);
+										},
+										{timeout: 500, maxStep: 20, forceExit: () => checkDeep(5)},
+									);
+								},
+								{timeout: 500, maxStep: 20, forceExit: () => checkDeep(4)},
+							);
+							
+						},
+						{timeout: 500, maxStep: 20, forceExit: () => checkDeep(3)},
+					);
+				},
+				{timeout: 800, maxStep: 50, forceExit: () => checkDeep(2)},
+			);
+			
+		},
+		{timeout: 100, delta: 100, maxStep: 50},
+	);
+}
+
 const attachScrollEvent = () => {
 	scrollStek++;
 	setTimeout(() => {
@@ -495,7 +590,8 @@ const changeSetting = (key, value) => {
 }
 
 const safeExec = (condition, func, settings, i = 0) => {
-	settings = $.extend({timeout: 50, delta: 10, maxStep: 50}, settings);
+	settings = $.extend({timeout: 50, delta: 10, maxStep: 50, forceExit: undefined}, settings);
+	if (settings.forceExit && settings.forceExit()) return;
 	setTimeout(() => {
 		if (!condition() && i < settings.maxStep) safeExec(func, condition, settings, ++i);
 		else func();
@@ -551,6 +647,7 @@ const startInit = (reset = false) => {
 			() => {
 				// start percent
 				calcPersent();
+				addAdditionalLinksButton();
 				eventsInstalled.formatNewView = true;
 				console.log('Event formatNewView installed');
 			},
