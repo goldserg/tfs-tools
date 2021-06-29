@@ -87,7 +87,8 @@ const statePatch = () => {
 
 const severityPatch = () => {
 	applyPatch('Severity', (elem) => {
-		elem.classList.add(`state--${elem.innerHTML}`);
+		const state = elem.innerHTML.replace(/(\d \- )?((\w+))/, '$2')
+		elem.classList.add(`state--${state}`);
 	});
 };
 
