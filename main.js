@@ -24,6 +24,7 @@ var settings = {
 	severity: true,
 	highlightRows: false,
 	wiStyle: true,
+	addFastTagToList: false,
 
 	keys: {
 		zoom: true,
@@ -418,10 +419,15 @@ const keyPanelShortkey = (e) => {
 		document.getElementById(`settings.${settingList[e.which - 49]}`).checked = settings[settingList[e.which - 49]];
 	}
 	if (e.which === 55 && !e.altKey) {
-		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle'];
+		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle', 'addFastTagToList'];
 		changeSetting('wiStyle');
 		document.getElementById(`settings.wiStyle`).checked = settings.wiStyle;
 		$(document.body).toggleClass('dev--work-item-style');
+	}
+	if (e.which === 56 && !e.altKey) {
+		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle', 'addFastTagToList'];
+		changeSetting('addFastTagToList');
+		document.getElementById(`settings.addFastTagToList`).checked = settings.wiStyle;
 	}
 };
 
@@ -727,11 +733,13 @@ const startInit = (reset = false) => {
 				// start percent
 				calcPersent();
 				addAdditionalLinksButton();
-				getAvailableVersions()
-					.then((versions) => {
-						if (!versions?.length) return;
-						fieldNames.forEach((field) => insertVersionButtons(field, versions));
-					});
+
+				if (settings.addFastTagToList)
+					getAvailableVersions()
+						.then((versions) => {
+							if (!versions?.length) return;
+							fieldNames.forEach((field) => insertVersionButtons(field, versions));
+						});
 				eventsInstalled.formatNewView = true;
 				console.log('Event formatNewView installed');
 			},
@@ -786,6 +794,11 @@ const startInit = (reset = false) => {
 							<label>
 								<input type="checkbox" id="settings.wiStyle" ${settings.wiStyle ? 'checked="checked"' : ''} 
 											onclick="changeSetting('wiStyle')"/> 
+								Work item style (7)
+							</label>
+							<label>
+								<input type="checkbox" id="settings.addFastTagToList" ${settings.addFastTagToList ? 'checked="checked"' : ''} 
+											onclick="changeSetting('addFastTagToList')"/> 
 								Work item style (7)
 							</label>
 						</div>
