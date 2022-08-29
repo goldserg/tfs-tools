@@ -1,9 +1,39 @@
+/*.delivery-plans-board .card-content .scroll-hidden {
+	flex-direction: row;
+	overflow: initial;
+}
+.delivery-plans-board .card-content .scroll-hidden > div {
+	position: sticky;
+  left: 164px;
+}
+   */
+
+
+.ttt-licenseexpired {
+	display: none;
+}
+
+/*------ for poker -----*/
+.work-item-description .html-content {
+	font-size: large;
+}
+.bolt-textfield-input {
+	color: var(--text-primary-color,rgba(0,0,0,.9));
+	/* rgba(255, 255, 255, 0.95) */
+}
+.card--frame, .card--flip {
+	color: rgba(255, 255, 255, 0.95)
+	/*var(--text-primary-color,rgba(0,0,0,.9));*/
+}
+/*------------*/
+
 #taskboard-table-body {
 	table-layout: fixed;
 }
 
-.maximized-grid-group .plaintextcontrol {
-	height: 70vh !important;
+/* Fix for dark theme*/
+.selected-artifact-path-textbox {
+	color: #000;
 }
 
 .dev--work-item-style .tbTile:not(.ui-draggable-dragging){
@@ -83,6 +113,17 @@
 	color: #ec0902;
 	font-weight: bold;
 }
+.state--Blocker {
+	color: #ec0902;
+	font-weight: bold;
+	animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+	50% {
+		opacity: 0;
+	}
+}
 .row--not-important {
 	opacity: 0.3;
 	transition-duration: 300ms;
@@ -140,4 +181,28 @@
 .dev-panel.showed {
 	height: 60px;
 	opacity: 1;
+}
+
+/*
+.work-item-type-icon[aria-label=Requirement] {
+    color: rgb(119, 59, 147) !important;
+}
+.work-item-type-icon[aria-label=LeadTask] {
+    color: rgb(0, 156, 204) !important;
+}*/
+
+
+/*********** FixVersion, AffectedVersion ***********/
+.set-value-button__wrapper {
+	display: flex;
+	flex-flow: row wrap;
+}
+.set-value-button {
+	flex: 1 1 calc(${Math.floor(100 / selectNLastVersions)}% - 4px);
+	background-color: rgba(175, 175, 175, .2);
+	margin: 2px;
+	border: none;
+}
+.set-value-button:hover {
+	background-color: rgba(175, 175, 175, .4);
 }

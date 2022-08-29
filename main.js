@@ -11,6 +11,11 @@ var TARGET_COLUMNS = [
 		],
 	},
 ];
+var addFastTagToLists = {
+	fieldNames: ['FixVersion', 'AffectedVersion'],
+	versionPatterns: ['SB_', 'AL_', 'VMS_'],
+	selectNLastVersions: 4
+};
 
 var settings = {
 	iterationPath: true,
@@ -470,6 +475,79 @@ const calcPersent = () => {
 	}
 }
 
+/*-------------- FixVersion, AffectedVersion ------------*/
+const fieldNames = addFastTagToLists.fieldNames;
+const versionPatterns = addFastTagToLists.versionPatterns;
+const selectNLastVersions = addFastTagToLists.selectNLastVersions;
+const customClass = 'set-value-button';
+const semverRegex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+const semverCompare = (a, b) => {
+	a = a.match(semverRegex)[0];
+	b = b.match(semverRegex)[0];
+	const pa = a.split('.');
+	const pb = b.split('.');
+	for (let i = 0; i < 3; i++) {
+		const na = Number(pa[i]);
+		const nb = Number(pb[i]);
+		if (na > nb) return 1;
+		if (nb > na) return -1;
+		if (!isNaN(na) && isNaN(nb)) return 1;
+		if (isNaN(na) && !isNaN(nb)) return -1;
+	}
+	return 0;
+};
+
+const getAvailableVersions = async () => {
+	const url = `https://dev.azure.com/Alphaopen/_apis/work/processes/lists/b006c50f-5b9e-4ea5-885f-d333810a9a9c?api-version=6.0`;
+	return fetch(url, { method: 'GET' })
+		.then((resp) => resp.json())
+		.then(body => {
+			const items = body.items
+				.filter((item) => versionPatterns.find((pattern) =>
+					item.startsWith(pattern) && item.match(semverRegex)),
+				)
+				.sort(semverCompare);
+			return versionPatterns
+				.map((pattern) => items
+					.filter((item) => item.startsWith(pattern))
+					.slice(-selectNLastVersions),
+				)
+				.reduce((acc, versions) => [...acc, ...versions])
+				.filter(i => i);
+		});
+};
+
+const insertVersionButtons = (fieldName, versions) => {
+	const inputs = [...document.querySelectorAll(`[aria-label="${fieldName}"]`)]
+		.filter((element) => {
+			const rect = element.getBoundingClientRect();
+			return rect.height > 0 && rect.width > 0;
+		});
+	if (inputs.length === 0) return;
+	// clear old generated
+	// $(`.${customClass}__wrapper`).remove();
+
+	for(const input of inputs) {
+		const workItemControl = input?.parentNode?.parentNode?.parentNode;
+		const control = workItemControl?.parentNode;
+		if (control.querySelectorAll(`.${customClass}`).length) continue;
+		const wrapper = document.createElement('div');
+		wrapper.classList.add(`${customClass}__wrapper`);
+		versions.forEach((value) => {
+			const btn = document.createElement('button');
+			btn.innerText = value;
+			btn.classList.add(customClass);
+			btn.onclick = () => {
+				input.value = value;
+				input.dispatchEvent(new Event('change'));
+			};
+			wrapper.appendChild(btn);
+		});
+		control.nextSibling ? control.parentNode.insertBefore(wrapper, control.nextSibling) : control.parentNode.appendChild(wrapper);
+	}
+	console.log(`Кнопки добавлены -> ${fieldName}`);
+};
+
 const addAdditionalLinksButton = () => {
 	var containerHeader = $('.add-links-container:eq(1) > div');
 	var newButton = $('.add-new-parent-button');
@@ -649,6 +727,11 @@ const startInit = (reset = false) => {
 				// start percent
 				calcPersent();
 				addAdditionalLinksButton();
+				getAvailableVersions()
+					.then((versions) => {
+						if (!versions?.length) return;
+						fieldNames.forEach((field) => insertVersionButtons(field, versions));
+					});
 				eventsInstalled.formatNewView = true;
 				console.log('Event formatNewView installed');
 			},
