@@ -69,7 +69,7 @@ const applyPatch = (key, patchFn) => {
   	const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-cell:nth-child(${index + 1})`);
   	elementRefs.length && elementRefs.toArray().forEach(patchFn);
 	});
-	
+
 	/*const index  = getColumnIndex(key);
 	document.querySelectorAll(`.grid-cell:nth-child(${index + 1})`);
 	elementRefs.forEach(patchFn);*/
@@ -102,14 +102,14 @@ const highlightRows = (columns) => {
 	if (columns.length === 0) return;
 	document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
 		const rowRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row.grid-row-normal`);
-  	
+
   	rowRefs.length && rowRefs.toArray().forEach((rowRef) => {
 			let mode = true;
 			const needToBeHiglighted = columns.some((column) => {
 				const columnIndex = getColumnIndex(column.key);
 				const columnRef = rowRef.children[columnIndex];
 				if (!columnRef) return false;
-				const matchFound = column.values.some((value) => 
+				const matchFound = column.values.some((value) =>
 					validateByOperator(columnRef.innerText, value, column.operator));
 				if (column.mode && matchFound) {
 					mode = column.mode;
@@ -130,7 +130,7 @@ const highlightRows = (columns) => {
 			const columnIndex = getColumnIndex(column.key);
 			const columnRef = rowRef.children[columnIndex];
 			if (!columnRef) return false;
-			const matchFound = column.values.some((value) => 
+			const matchFound = column.values.some((value) =>
 				validateByOperator(columnRef.innerText, value, column.operator));
 			if (column.mode && matchFound) {
 				mode = column.mode;
@@ -180,7 +180,7 @@ const applyPatches = () => {
       u = !0;
   return u
 }
-    
+
 // ============= WI ==============================
 
 // "Я", "я" => "Z", "z"
@@ -212,7 +212,7 @@ const keyMain = (e) => {
 const keyRefreshWI = (e) => {
 	if (!settings.keys.refreshWI) return;
 	if (e.altKey && e.which == 53) {
-		// list 
+		// list
 		if ($('[command=refresh-work-items]:visible').length) {
 			$('[command=refresh-work-items]:visible').click();
 			setTimeout(applyPatches, 1000);
@@ -225,6 +225,12 @@ const keyRefreshWI = (e) => {
 		} else if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
 			$('.workitem-tool-bar .bowtie-navigate-refresh').click();
 			calcPersent();
+			if (settings.addFastTagToList && $('.work-item-form').length > 0)
+				getAvailableVersions()
+					.then((versions) => {
+						if (!versions?.length) return;
+						addFastTagToLists.fieldNames.forEach((field) => insertVersionButtons(field, versions));
+					});
 		}
 	}
 };
@@ -273,7 +279,7 @@ const keyCloseWi = (e) => {
 	if (e.ctrlKey && e.altKey && e.which == 67) {
 		// Если открыт шаблон
 		const menuItem = '[data-parent*="_work-item-templates"] [role=menuitem] [role=button]:contains("Close"):visible';
-		
+
 		safeExec(
 			() => $(menuItem).length !== 0,
 			() => { $(menuItem).parent().eq(0).click() }
@@ -294,12 +300,12 @@ const keyAddTags = (e) => {
 const keyExpandCollapse = (e) => {
 	if (!settings.keys.expandCollapse) return;
 	if (e.altKey && [189, 108, 187, 107].indexOf(e.which) > -1) {
-		const action = 
-			[189, 108].indexOf(e.which) > -1 
-				? 'collapse' 
+		const action =
+			[189, 108].indexOf(e.which) > -1
+				? 'collapse'
 				: 'expand';
 		const actionsQuery = `.expand-collapse-icons-header .${action}-icon`;
-		
+
 		safeExec(
 			() => $(actionsQuery).length !== 0,
 			() => { $(actionsQuery).click() }
@@ -312,7 +318,7 @@ const keyExpandCollapse = (e) => {
 const keyCopyId = (e) => {
 	if (!settings.keys.copyId) return;
 	if (e.altKey && e.shiftKey && e.which == 88) {
-		
+
 		// WI
 		if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
 			document.designMode = 'on';
@@ -324,7 +330,7 @@ const keyCopyId = (e) => {
 			document.execCommand('copy');
 			document.body.removeChild(el);
 			document.designMode = 'off';
-		} else // list 
+		} else // list
 		if ($(wiLists.join(', ')).length) {
 			//$('.grid-row-selected:visible')
 			document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
@@ -343,7 +349,7 @@ const keyCopyId = (e) => {
 					document.designMode = 'off';
 		  	}
 			});
-		} 
+		}
 	}
 };
 
@@ -351,16 +357,16 @@ const keyCopyId = (e) => {
 const keyCopyWI = (e) => {
 	if (!settings.keys.copyId) return;
 	if (e.altKey && e.shiftKey && e.which == 67) {
-		
+
 		// WI cancel custom
 		if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
 			return e;
-		} else // list 
+		} else // list
 		if ($(wiLists.join(', ')).length) {
 			//$('.grid-row-selected:visible')
 			document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
 				const colIndex = {
-					id: getColumnIndex('ID', gridN), 
+					id: getColumnIndex('ID', gridN),
 					title: getColumnIndex('Title', gridN)
 				};
 		  	const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
@@ -368,7 +374,7 @@ const keyCopyWI = (e) => {
 				if (elementListTitle.length === 0) {
 					elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1})`);
 				}
-			
+
 		  	if (elementListId.length && elementListId.length === elementListTitle.length) {
 		  		const isHtml = true;
 		  		const elementListTitleArr = elementListTitle.toArray();
@@ -377,12 +383,12 @@ const keyCopyWI = (e) => {
 		  			const id = _.innerText;
 		  			const title = $('.work-item-title-link', elementListTitleArr[i]).text();
 		  			const type = $('.work-item-type-icon-host i', elementListTitleArr[i]).attr('aria-label');
-		  			
+
 		  			const result = `<span style='font-size:11pt; background-color: inherit; color: inherit;'><a href='${link}' target='_blank' rel='noopener noreferrer'>${type} ${id}<\/a><span style='font-size:11pt; background-color: inherit; color: inherit;'>: ${title}<\/span><\/span>`;
-		  		
+
 		  			return result;
 		  		}).join(isHtml ? '<br/>' : '\n\r');
-		  		
+
 		  		copyToClipboard(value, isHtml);
 		  		/*
 		  		document.designMode = 'on';
@@ -397,7 +403,7 @@ const keyCopyWI = (e) => {
 					*/
 		  	}
 			});
-		} 
+		}
 	}
 };
 
@@ -427,7 +433,7 @@ const keyPanelShortkey = (e) => {
 	if (e.which === 56 && !e.altKey) {
 		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiStyle', 'addFastTagToList'];
 		changeSetting('addFastTagToList');
-		document.getElementById(`settings.addFastTagToList`).checked = settings.wiStyle;
+		document.getElementById(`settings.addFastTagToList`).checked = settings.addFastTagToList;
 	}
 };
 
@@ -482,9 +488,6 @@ const calcPersent = () => {
 }
 
 /*-------------- FixVersion, AffectedVersion ------------*/
-const fieldNames = addFastTagToLists.fieldNames;
-const versionPatterns = addFastTagToLists.versionPatterns;
-const selectNLastVersions = addFastTagToLists.selectNLastVersions;
 const customClass = 'set-value-button';
 const semverRegex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
 const semverCompare = (a, b) => {
@@ -509,14 +512,14 @@ const getAvailableVersions = async () => {
 		.then((resp) => resp.json())
 		.then(body => {
 			const items = body.items
-				.filter((item) => versionPatterns.find((pattern) =>
+				.filter((item) => addFastTagToLists.versionPatterns.find((pattern) =>
 					item.startsWith(pattern) && item.match(semverRegex)),
 				)
 				.sort(semverCompare);
-			return versionPatterns
+			return addFastTagToLists.versionPatterns
 				.map((pattern) => items
 					.filter((item) => item.startsWith(pattern))
-					.slice(-selectNLastVersions),
+					.slice(-addFastTagToLists.selectNLastVersions),
 				)
 				.reduce((acc, versions) => [...acc, ...versions])
 				.filter(i => i);
@@ -524,7 +527,7 @@ const getAvailableVersions = async () => {
 };
 
 const insertVersionButtons = (fieldName, versions) => {
-	const inputs = [...document.querySelectorAll(`[aria-label="${fieldName}"]`)]
+	const inputs = [...document.querySelectorAll(`.work-item-form [aria-label="${fieldName}"]`)]
 		.filter((element) => {
 			const rect = element.getBoundingClientRect();
 			return rect.height > 0 && rect.width > 0;
@@ -538,7 +541,10 @@ const insertVersionButtons = (fieldName, versions) => {
 		const control = workItemControl?.parentNode;
 		if (control.querySelectorAll(`.${customClass}`).length) continue;
 		const wrapper = document.createElement('div');
-		wrapper.classList.add(`${customClass}__wrapper`);
+		wrapper.classList.add(`${customClass}__wrapper`, `${fieldName}__custom-list`);
+		if (control.nextSibling?.classList.contains(`${fieldName}__custom-list`))
+			continue;
+
 		versions.forEach((value) => {
 			const btn = document.createElement('button');
 			btn.innerText = value;
@@ -567,9 +573,9 @@ const addAdditionalLinksButton = () => {
 		<button class="add-new-item-component-button add-new-child-button" tabindex="0"><span class="text">Child</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-down root-66" role="presentation"></i></button>
 		<button class="add-new-item-component-button add-new-related-button" tabindex="0"><span class="text">Rel</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-right root-66" role="presentation"></i></button>
 		`);
-		
+
 		$('.add-links-container:eq(1) .add-new-item-component-button:eq(0) .text').text('Добавить');
-		
+
 		$('.add-new-parent-button').on('click', () => {
 			addNewLinkEvent('Parent')
 		});
@@ -621,7 +627,7 @@ const addNewLinkEvent = (linkType) => {
 												return;
 											$('.ms-Suggestions-item > button').click();
 											deep[5] = true;
-											
+
 											safeExec(
 												() => $('#ok:not([disabled])').length > 0,
 												() => {
@@ -636,14 +642,14 @@ const addNewLinkEvent = (linkType) => {
 								},
 								{timeout: 500, maxStep: 20, forceExit: () => checkDeep(4)},
 							);
-							
+
 						},
 						{timeout: 500, maxStep: 20, forceExit: () => checkDeep(3)},
 					);
 				},
 				{timeout: 800, maxStep: 50, forceExit: () => checkDeep(2)},
 			);
-			
+
 		},
 		{timeout: 100, delta: 100, maxStep: 50},
 	);
@@ -689,7 +695,7 @@ const validateByOperator = (a, b, operator = 'EQUALS') => {
 		case 'CONTAINS':
 			return a.trim().toLowerCase().includes(b.trim().toLowerCase());
 	}
-	
+
 }
 const setLS = (key, value) => {
 	localStorage[key] = JSON.stringify(value);
@@ -712,7 +718,7 @@ const startInit = (reset = false) => {
 	}
 	//settings = getLS('settings') || settings;
 	settings.keys.panelShortkey = false;
-	
+
 	if (settings.wiStyle && !$('body.dev--work-item-style').length) {
 		$(document.body).toggleClass('dev--work-item-style');
 	}
@@ -734,11 +740,11 @@ const startInit = (reset = false) => {
 				calcPersent();
 				addAdditionalLinksButton();
 
-				if (settings.addFastTagToList)
+				if (settings.addFastTagToList && $('.work-item-form').length > 0)
 					getAvailableVersions()
 						.then((versions) => {
 							if (!versions?.length) return;
-							fieldNames.forEach((field) => insertVersionButtons(field, versions));
+							addFastTagToLists.fieldNames.forEach((field) => insertVersionButtons(field, versions));
 						});
 				eventsInstalled.formatNewView = true;
 				console.log('Event formatNewView installed');
@@ -799,7 +805,7 @@ const startInit = (reset = false) => {
 							<label>
 								<input type="checkbox" id="settings.addFastTagToList" ${settings.addFastTagToList ? 'checked="checked"' : ''} 
 											onclick="changeSetting('addFastTagToList')"/> 
-								Work item style (7)
+								Add Fast Tag to List (8)
 							</label>
 						</div>
 						<div class="dev-panel__header">HotKeys</div>
