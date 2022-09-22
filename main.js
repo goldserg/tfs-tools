@@ -68,8 +68,8 @@ const getColumnIndex = (key, gridN = 0) => {
 const applyPatch = (key, patchFn) => {
 	document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
 		const index  = getColumnIndex(key, gridN);
-  	const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-cell:nth-child(${index + 1})`);
-  	elementRefs.length && elementRefs.toArray().forEach(patchFn);
+		const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-cell:nth-child(${index + 1})`);
+		elementRefs.length && elementRefs.toArray().forEach(patchFn);
 	});
 
 	/*const index  = getColumnIndex(key);
@@ -105,7 +105,7 @@ const highlightRows = (columns) => {
 	document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
 		const rowRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row.grid-row-normal`);
 
-  	rowRefs.length && rowRefs.toArray().forEach((rowRef) => {
+		rowRefs.length && rowRefs.toArray().forEach((rowRef) => {
 			let mode = true;
 			const needToBeHiglighted = columns.some((column) => {
 				const columnIndex = getColumnIndex(column.key);
@@ -155,32 +155,32 @@ const applyPatches = () => {
 };
 
 // ============= CopyToClipboard ==============================
- function copyToClipboard(n, t) {
-  var u = !1, r, f, i;
-  if (t || window.clipboardData === undefined) {
-      i = $("<div/>");
-      try {
-          i.css("background-color", "inherit");
-          t ? i.append(n) : (i.css("white-space", "pre"),
-          i.text(n));
-          document.body.createTextRange ? (i.prependTo($("body")),
-          r = document.body.createTextRange(),
-          r.moveToElementText(i[0]),
-          r.select(),
-          u = r.execCommand("copy")) : document.createRange && window.getSelection && (i.appendTo($("body")),
-          r = document.createRange(),
-          f = window.getSelection(),
-          f.removeAllRanges(),
-          r.selectNodeContents(i[0]),
-          f.addRange(r),
-          u = document.execCommand("copy"))
-      } finally {
-          i.remove()
-      }
-  } else
-      window.clipboardData.setData(o, n),
-      u = !0;
-  return u
+function copyToClipboard(n, t) {
+	var u = !1, r, f, i;
+	if (t || window.clipboardData === undefined) {
+		i = $("<div/>");
+		try {
+			i.css("background-color", "inherit");
+			t ? i.append(n) : (i.css("white-space", "pre"),
+				i.text(n));
+			document.body.createTextRange ? (i.prependTo($("body")),
+				r = document.body.createTextRange(),
+				r.moveToElementText(i[0]),
+				r.select(),
+				u = r.execCommand("copy")) : document.createRange && window.getSelection && (i.appendTo($("body")),
+				r = document.createRange(),
+				f = window.getSelection(),
+				f.removeAllRanges(),
+				r.selectNodeContents(i[0]),
+				f.addRange(r),
+				u = document.execCommand("copy"))
+		} finally {
+			i.remove()
+		}
+	} else
+		window.clipboardData.setData(o, n),
+			u = !0;
+	return u
 }
 
 // ============= WI ==============================
@@ -223,7 +223,7 @@ const keyRefreshWI = (e) => {
 			$('[data-command-key=refresh-work-items]:visible').click();
 			setTimeout(applyPatches, 1000);
 			// formatNewView();
-		// WI
+			// WI
 		} else if ($('.workitem-tool-bar .bowtie-navigate-refresh:visible').length) {
 			$('.workitem-tool-bar .bowtie-navigate-refresh').click();
 			calcPersent();
@@ -337,10 +337,10 @@ const keyCopyId = (e) => {
 			//$('.grid-row-selected:visible')
 			document.querySelectorAll('.grid-canvas[role=presentation]:not(.no-rows)').forEach((_, gridN) => {
 				const index  = getColumnIndex('ID', gridN);
-		  	const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${index + 1})`);
-		  	if (elementRefs.length) {
-		  		const value = elementRefs.toArray().map(_ => _.innerText).join(',');
-		  		document.designMode = 'on';
+				const elementRefs = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${index + 1})`);
+				if (elementRefs.length) {
+					const value = elementRefs.toArray().map(_ => _.innerText).join(',');
+					document.designMode = 'on';
 					const el = document.createElement('textarea');
 					el.value = value;
 					el.textContent = el.value;
@@ -349,7 +349,7 @@ const keyCopyId = (e) => {
 					document.execCommand('copy');
 					document.body.removeChild(el);
 					document.designMode = 'off';
-		  	}
+				}
 			});
 		}
 	}
@@ -371,39 +371,39 @@ const keyCopyWI = (e) => {
 					id: getColumnIndex('ID', gridN),
 					title: getColumnIndex('Title', gridN)
 				};
-		  	const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
-		  	let elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
+				const elementListId = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.id + 1})`);
+				let elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1}) .grid-cell-contents-container`);
 				if (elementListTitle.length === 0) {
 					elementListTitle = $(`.grid-canvas[role=presentation]:not(.no-rows):eq(${gridN}) .grid-row-selected:visible .grid-cell:nth-child(${colIndex.title + 1})`);
 				}
 
-		  	if (elementListId.length && elementListId.length === elementListTitle.length) {
-		  		const isHtml = true;
-		  		const elementListTitleArr = elementListTitle.toArray();
-		  		const value = elementListId.toArray().map((_, i) => {
-		  			const link = $('.work-item-title-link', elementListTitleArr[i]).attr('href');
-		  			const id = _.innerText;
-		  			const title = $('.work-item-title-link', elementListTitleArr[i]).text();
-		  			const type = $('.work-item-type-icon-host i', elementListTitleArr[i]).attr('aria-label');
+				if (elementListId.length && elementListId.length === elementListTitle.length) {
+					const isHtml = true;
+					const elementListTitleArr = elementListTitle.toArray();
+					const value = elementListId.toArray().map((_, i) => {
+						const link = $('.work-item-title-link', elementListTitleArr[i]).attr('href');
+						const id = _.innerText;
+						const title = $('.work-item-title-link', elementListTitleArr[i]).text();
+						const type = $('.work-item-type-icon-host i', elementListTitleArr[i]).attr('aria-label');
 
-		  			const result = `<span style='font-size:11pt; background-color: inherit; color: inherit;'><a href='${link}' target='_blank' rel='noopener noreferrer'>${type} ${id}<\/a><span style='font-size:11pt; background-color: inherit; color: inherit;'>: ${title}<\/span><\/span>`;
+						const result = `<span style='font-size:11pt; background-color: inherit; color: inherit;'><a href='${link}' target='_blank' rel='noopener noreferrer'>${type} ${id}<\/a><span style='font-size:11pt; background-color: inherit; color: inherit;'>: ${title}<\/span><\/span>`;
 
-		  			return result;
-		  		}).join(isHtml ? '<br/>' : '\n\r');
+						return result;
+					}).join(isHtml ? '<br/>' : '\n\r');
 
-		  		copyToClipboard(value, isHtml);
-		  		/*
-		  		document.designMode = 'on';
-					const el = document.createElement('textarea');
-					el.value = value;
-					el.textContent = el.value;
-					document.body.appendChild(el);
-					el.select();
-					document.execCommand('copy');
-					document.body.removeChild(el);
-					document.designMode = 'off';
-					*/
-		  	}
+					copyToClipboard(value, isHtml);
+					/*
+					document.designMode = 'on';
+					  const el = document.createElement('textarea');
+					  el.value = value;
+					  el.textContent = el.value;
+					  document.body.appendChild(el);
+					  el.select();
+					  document.execCommand('copy');
+					  document.body.removeChild(el);
+					  document.designMode = 'off';
+					  */
+				}
 			});
 		}
 	}
@@ -572,22 +572,22 @@ const addAdditionalLinksButton = () => {
 		//percentTask.length = 0;
 	}
 
-		containerHeader.append(`<button class="add-new-item-component-button add-new-parent-button" tabindex="0"><span class="text">Par</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-up root-66" role="presentation"></i></button>
+	containerHeader.append(`<button class="add-new-item-component-button add-new-parent-button" tabindex="0"><span class="text">Par</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-up root-66" role="presentation"></i></button>
 		<button class="add-new-item-component-button add-new-child-button" tabindex="0"><span class="text">Child</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-down root-66" role="presentation"></i></button>
 		<button class="add-new-item-component-button add-new-related-button" tabindex="0"><span class="text">Rel</span><i class="vss-Icon vss-Icon--bowtie bowtie-arrow-right root-66" role="presentation"></i></button>
 		`);
 
-		$('.add-links-container:eq(1) .add-new-item-component-button:eq(0) .text').text('Добавить');
+	$('.add-links-container:eq(1) .add-new-item-component-button:eq(0) .text').text('Добавить');
 
-		$('.add-new-parent-button').on('click', () => {
-			addNewLinkEvent('Parent')
-		});
-		$('.add-new-child-button').on('click', () => {
-			addNewLinkEvent('Child')
-		});
-		$('.add-new-related-button').on('click', () => {
-			addNewLinkEvent('Related')
-		});
+	$('.add-new-parent-button').on('click', () => {
+		addNewLinkEvent('Parent')
+	});
+	$('.add-new-child-button').on('click', () => {
+		addNewLinkEvent('Child')
+	});
+	$('.add-new-related-button').on('click', () => {
+		addNewLinkEvent('Related')
+	});
 }
 
 
@@ -672,14 +672,14 @@ const attachScrollEvent = () => {
 const changeSetting = (key, value) => {
 	const path = key.split('.');
 	path.reduce((memo, _) => {
-  	if (memo.hasOwnProperty(_)) {
-    	if (typeof memo[_] != 'object') {
-    		memo[_] = value != undefined ? value : !memo[_];
-    		setLS('settings', settings);
-    	}
+		if (memo.hasOwnProperty(_)) {
+			if (typeof memo[_] != 'object') {
+				memo[_] = value != undefined ? value : !memo[_];
+				setLS('settings', settings);
+			}
 			return memo[_];
-  	}
-  	console.warn(`Key ${key} not found in ${settings}`);
+		}
+		console.warn(`Key ${key} not found in ${settings}`);
 	}, settings);
 }
 
@@ -687,7 +687,7 @@ const safeExec = (condition, func, settings, i = 0) => {
 	settings = $.extend({timeout: 50, delta: 10, maxStep: 50, forceExit: undefined}, settings);
 	if (settings.forceExit && settings.forceExit()) return;
 	setTimeout(() => {
-		if (!condition() && i < settings.maxStep) safeExec(func, condition, settings, ++i);
+		if (!condition() && i < settings.maxStep) safeExec(condition, func, settings, ++i);
 		else func();
 	}, settings.timeout + i * settings.delta);
 };
@@ -772,25 +772,30 @@ const startInit = (reset = false) => {
 
 		// Установка наблюдения за списком при раскрытой правой панели
 		safeExec(
-			() => $(wiLists.join(', ')).length > 0 && $('.rightPane .work-item-form .info-text-wrapper').length > 0 && !eventsInstalled.observerRightPaneInstalled,
+			() => {
+				return $(wiLists.join(', ')).length > 0
+					&& $('.rightPane .work-item-form .info-text-wrapper').length > 0
+					&& !eventsInstalled.observerRightPaneInstalled
+			},
 			() => {
 				const div_section = document.querySelector('.rightPane .work-item-form .info-text-wrapper');
 
 				const observer = new MutationObserver((mutationsList, observer) => {
-					for(const mutation of mutationsList) {
-						if (settings.addFastTagToList && $('.work-item-form').length > 0)
-							getAvailableVersions()
-								.then((versions) => {
-									if (!versions?.length) return;
-									addFastTagToLists.fieldNames.forEach((field) => insertVersionButtons(field, versions));
-								});
-					}
+					//console.log(mutationsList);
+					//for(const mutation of mutationsList) {
+					if (settings.addFastTagToList && $('.work-item-form').length > 0)
+						getAvailableVersions()
+							.then((versions) => {
+								if (!versions?.length) return;
+								addFastTagToLists.fieldNames.forEach((field) => insertVersionButtons(field, versions));
+							});
+					//}
 				});
 
 				observer.observe(div_section, {
 					attributes: true,
 					childList: true,
-					subtree: false }
+					subtree: true }
 				);
 				console.log('Установка наблюдения за списком при раскрытой правой панели завершена');
 				eventsInstalled.observerRightPaneInstalled = true;
@@ -886,7 +891,7 @@ const startInit = (reset = false) => {
 			console.log('Full Loaded');
 			formatNewView();
 			break;
-			// Скрытие предупреждений для ретроплагина
+		// Скрытие предупреждений для ретроплагина
 		case location.href.indexOf('_apps/hub/ms-devlabs.team-retrospectives.home') > -1:
 			console.log('Retro Loaded');
 			safeExec(
