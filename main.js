@@ -23,6 +23,7 @@ var settings = {
 	state: false,
 	severity: true,
 	highlightRows: false,
+	wiCalc: false,
 	wiStyle: true,
 	addFastTagToList: false,
 
@@ -49,7 +50,8 @@ const wiLists = [
 const eventsInstalled = {
 	formatNewView: false,
 	highlightList: false,
-	devPanel: false
+	devPanel: false,
+	observerRightPaneInstalled: false
 };
 const tfsProject = ['FORIS_Mobile', 'a0bf1feb-f7e0-4f18-9f30-7c4d9ec8d5d9'];
 const tfsTeam = 'NCIH 2.0 Team';
@@ -420,7 +422,7 @@ const keyPanelShortkey = (e) => {
 	if (!settings.keys.panelShortkey) return;
 	if (e.target.tagName.toLowerCase() === 'input') return true;
 	if (e.which >= 49 && e.which <= 54 && !e.altKey) {
-		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows'];
+		const settingList = ['iterationPath', 'state', 'severity', 'highlightRows', 'wiCalc'];
 		changeSetting(settingList[e.which - 49]);
 		document.getElementById(`settings.${settingList[e.which - 49]}`).checked = settings[settingList[e.which - 49]];
 	}
@@ -455,6 +457,7 @@ $(document).keydown(function(e) { //For any other keypress event
 });
 
 const calcPersent = () => {
+	if (!settings.wiCalc) return;
 	var containerHeader = $('.work-item-form-header-controls-container');
 	var percentTask = $('.percent-wi');
 	const completedWorkField = $('.workitemcontrol-label:contains(Completed work):visible');
@@ -767,6 +770,34 @@ const startInit = (reset = false) => {
 			{timeout: 500},
 		);
 
+		// Установка наблюдения за списком при раскрытой правой панели
+		safeExec(
+			() => $(wiLists.join(', ')).length > 0 && $('.rightPane .work-item-form .info-text-wrapper').length > 0 && !eventsInstalled.observerRightPaneInstalled,
+			() => {
+				const div_section = document.querySelector('.rightPane .work-item-form .info-text-wrapper');
+
+				const observer = new MutationObserver((mutationsList, observer) => {
+					for(const mutation of mutationsList) {
+						if (settings.addFastTagToList && $('.work-item-form').length > 0)
+							getAvailableVersions()
+								.then((versions) => {
+									if (!versions?.length) return;
+									addFastTagToLists.fieldNames.forEach((field) => insertVersionButtons(field, versions));
+								});
+					}
+				});
+
+				observer.observe(div_section, {
+					attributes: true,
+					childList: true,
+					subtree: false }
+				);
+				console.log('Установка наблюдения за списком при раскрытой правой панели завершена');
+				eventsInstalled.observerRightPaneInstalled = true;
+			},
+			{timeout: 500},
+		);
+
 		// Create dev panel
 		safeExec(
 			() => $('.dev-panel').length === 0,
@@ -796,6 +827,11 @@ const startInit = (reset = false) => {
 								<input type="checkbox" id="settings.highlightRows" ${settings.highlightRows ? 'checked="checked"' : ''} 
 											onclick="changeSetting('highlightRows')"/> 
 								HighlightRows (4)
+							</label>
+							<label>
+								<input type="checkbox" id="settings.wiCalc" ${settings.wiCalc ? 'checked="checked"' : ''} 
+											onclick="changeSetting('wiCalc')"/> 
+								calc (6)
 							</label>
 							<label>
 								<input type="checkbox" id="settings.wiStyle" ${settings.wiStyle ? 'checked="checked"' : ''} 

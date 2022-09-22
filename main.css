@@ -206,3 +206,8 @@
 .set-value-button:hover {
 	background-color: rgba(175, 175, 175, .4);
 }
+
+/* Fix for Bug wi card */
+.work-item-responsive-header .work-item-responsive-header-left {
+	min-width: 57%;
+}
