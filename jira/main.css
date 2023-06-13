@@ -1,0 +1,71 @@
+.dev-panel {
+	position: absolute;
+	background-color: #111;
+	color: #eee;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 0;
+	opacity: 0;
+	transition-duration: 0.7s;
+	z-index: 100000;
+	top: 0;
+	visibility: hidden;
+}
+
+.dev-panel__header {
+	margin-left: 20px;
+	font-size: large;
+}
+
+.dev-panel label{
+	color: #eee;
+}
+.dev-panel table {
+	border-collapse: collapse;
+}
+.dev-panel td, .dev-panel th {
+	border: 1px solid #fff;
+}
+
+.dev-panel.showed {
+	height: 500px;
+	opacity: 0.9;
+	visibility: initial;
+}
+.dev-panel__header {
+	margin-left: 20px;
+	font-size: large;
+	flex-direction: row;
+	display: flex;
+	width: 500px;
+	align-items: center;
+	justify-content: space-around;
+}
+.dev-panel__header form {
+	display: flex;
+	flex-direction: column;
+}
+#dev-panel__table a {
+	color: #add;
+}
+#dev-panel__demo_proxy,
+#dev-panel__refresh {
+	background-color: #ff0000ff;
+	animation-name: blinker;
+	animation-duration: 3s;
+	animation-iteration-count: infinite;
+}
+@keyframes blinker {
+	0% { background-color: #ff000055; }
+	50% { background-color: #ff0000ff; }
+	100% { background-color: #ff000055; }
+}
+
+#header>.aui-header.aui-dropdown2-trigger-group .aui-nav>li>#open-dev-panel,
+#dev-panel__save {
+	background-color: #00875a;
+	color: #fff;
+}
