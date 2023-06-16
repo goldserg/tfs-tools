@@ -14,7 +14,9 @@
 	top: 0;
 	visibility: hidden;
 }
-
+.dev-panel > * {
+	min-width: 500px;
+}
 .dev-panel__header {
 	margin-left: 20px;
 	font-size: large;
@@ -47,6 +49,28 @@
 .dev-panel__header form {
 	display: flex;
 	flex-direction: column;
+}
+.dev-panel__vacations {
+	width: 500px;
+	align-items: center;
+	justify-content: space-around;
+	display: flex;
+	position: relative;
+}
+.dev-panel .title {
+	position: absolute;
+	top: -40px;
+	right: 50%;
+	color: #fff;
+	font-size: 20px;
+}
+#dev-panel__vacations-form {
+	display: flex;
+}
+.dev-panel__vacations .period {
+	display: flex;
+	flex-direction: column;
+	margin-right: 10px;
 }
 #dev-panel__table a {
 	color: #add;

@@ -6,14 +6,16 @@ const options = {
 		'Content-Type': 'application/json'
 	}
 };
-const DAY_MS = Date.DAY;
+let DAY_MS = Date.DAY;
 const corsProxies = ['https://cors-anywhere.herokuapp.com/'];
 const year = new Date().getFullYear();
 const jqlSearch = `project = HOL and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
 // 'assignee = currentUser() AND resolution = Unresolved order by created DESC'
 let myName = null;
 let calendar = null;
-let columns = ['Id', '%'];
+let vacations = null;
+const columnsBase = ['Id', 'summary', '%'];
+let columns = [...columnsBase];
 let dataTasks = [];
 
 
@@ -33,9 +35,20 @@ $(document).keydown(function(e) { //For any other keypress event
 });
 
 const getDateArray = (dateFrom, dateTo) => {
+	if (!DAY_MS) DAY_MS = Date.DAY;
 	const allDaysOff = calendar.reduce((memo, month)=>{
 		const days = month.days.split(',').filter(day => !day.includes('*')).map(day => parseInt(day.split('+')[0]));
 		days.forEach(day => memo.push(new Date(year, month.month - 1, day, 3)));
+		return memo;
+	}, []);
+	const personaDaysOff = vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].reduce((memo, vac)=>{
+		const duration = new Date(vac.DateTo) - new Date(vac.DateFrom);
+		const steps = duration / DAY_MS;
+		const days = Array.from({length: steps+1}, (v,i) => new Date(new Date(vac.DateFrom).valueOf() + (DAY_MS * i)));
+		days.forEach(day => {
+			day.setHours(3);
+			memo.push(day);
+		});
 		return memo;
 	}, []);
 	const allDays7h = calendar.reduce((memo, month)=>{
@@ -49,7 +62,9 @@ const getDateArray = (dateFrom, dateTo) => {
 	let daysDateMap = new Array(daysCount).fill(null)
 		.map((day, index) => new Date(dateFrom.getTime() + index * DAY_MS))
 		// фильтруем выходные и праздники
-		.filter(day => !allDaysOff.map(_ => _.getTime()).includes(day.getTime()) );
+		.filter(day => !allDaysOff.map(_ => _.getTime()).includes(day.getTime()) )
+		// фильтруем отпуска
+		.filter(day => !personaDaysOff.map(_ => _.getTime()).includes(day.getTime()) );
 
 	return daysDateMap;
 }
@@ -67,8 +82,8 @@ const addNewItem = (
 	jql = encodeURIComponent(jql);
 	const optFixVersion = {
 		...options,
-		path: `/rest/api/2/search?jql=${jql}&fields=worklog&maxResults=250`,
-		url: `${options.protocol}//${options.host}/rest/api/2/search?jql=${jql}&fields=worklog&maxResults=250`
+		path: `/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`,
+		url: `${options.protocol}//${options.host}/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`
 	};
 
 	let daysDateMap = getDateArray(dateFrom, dateTo);
@@ -78,6 +93,13 @@ const addNewItem = (
 		// проверяем список worklog и составляем список необходимых расширенных запросов
 		for (const task of taskList.issues) {
 			const index = taskList.issues.indexOf(task);
+
+			// проверка на заполенность summary
+			dataTasks.forEach((_, index) => {
+				if (_.Id === task.key/* && !_.summary*/)
+					dataTasks[index].summary = task.fields.summary;
+			})
+
 			if (task.fields.worklog.total <= task.fields.worklog.maxResults) continue;
 
 			await getRequest({
@@ -158,6 +180,9 @@ const addNewItem = (
 			console.log(days);
 		});
 
+		// clear old data
+		columns = [...columnsBase];
+
 		daysDateMap.forEach((day, i) => {
 			var dateColName = day.toLocaleDateString().substr(0, 5);
 			!columns.includes(dateColName) && columns.push(dateColName);
@@ -166,6 +191,8 @@ const addNewItem = (
 			})
 		});
 
+		// save summory
+		setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
 		refreshTable();
 		$('#dev-panel__save').show();
 	});
@@ -173,7 +200,7 @@ const addNewItem = (
 const save = () => {
 	$('#dev-panel__save').hide();
 	dataTasks.forEach(async function(task, row){
-		for (const date of Object.keys(task)) if (!['Id', '%'].includes(date) && task[date]){
+		for (const date of Object.keys(task)) if (!columnsBase.includes(date) && task[date]){
 			await getRequest({
 				...options,
 				method: 'POST',
@@ -192,15 +219,58 @@ const save = () => {
 
 function refreshTable() {
 	$('#newJiraPercent').off('keyup');
-	const head = '<thead><tr>\n\t\t\t' + columns.map(col => `<th>${col.replace(/(.*?)/, '$1')}</th>`).join('\n\t\t') + '\n\t\t</tr></thead>';
+	const head = '<thead><tr>\n\t\t\t' + columns.map(col => {
+		return columnsBase.includes(col) ? `<th>${col.replace(/(.*?)/, '$1')}</th>` : `<th>${col.replace(/(.*?)/, '$1')} <a href="javascript:void(0)" onclick="clearWorklog(undefined, '${col}')">❌</a></th>`
+	}).join('\n\t\t') + '\n\t\t</tr></thead>';
 	const lines = dataTasks.map((wi, row) => `<tr>\n\t\t\t${columns.map(col => {
-			return col === 'Id' ? `<td><a href="${location.origin}/browse/${wi[col]}">${wi[col]}</a> <button onclick="removeRow(${row})">❌</button></td>` : `<td>${wi[col] || ''}</td>`;
+			switch (col) {
+				case 'Id':
+					return `<td><a href="${location.origin}/browse/${wi[col]}">${wi[col]}</a> <a href="javascript:void(0)" onclick="removeRow(${row})">❌</a></td>`
+				case 'summary':
+				case '%':
+					return `<td>${wi[col] || ''}</td>`
+				default:
+					return !wi[col] ? 
+						`<td></td>` :
+						`<td>${wi[col]}  <a href="javascript:void(0)" onclick="clearWorklog(${row}, '${col}')">❌</a></td>`
+			}
 		}).join('\n\t\t\t')}\n\t\t</tr>`).join('\n\t\t') +
-		`<tr>\n\t\t\t<td><input type="text" id="newJiraId"></td><td><input type="text" id="newJiraPercent"> <button onclick="addRow()">✔️</button></td>\n\t\t</tr>`;
+		`<tr>\n\t\t\t<td><input type="text" id="newJiraId"></td><td colspan="2"><input type="text" id="newJiraPercent"> <a href="javascript:void(0)" onclick="addRow()">✔️</a></td>\n\t\t</tr>`;
 
 	$('#dev-panel__table').html(head + '<tbody>' + lines + '</tbody>');
 	$('#newJiraPercent').on('keyup', (e) => (e.key === 'Enter' || e.keyCode === 13) && addRow());
 }
+const refreshVacationTable = () => {
+	const periods = vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].map((period, index) => {
+		const dateFrom = period.DateFrom.replace(/(.*?)T.*/, '$1');
+		const dateTo = period.DateTo.replace(/(.*?)T.*/, '$1');
+		return `<div class="period">
+			<input type="date" name="dateFrom_${index}" value="${dateFrom}" onchange="changeVacationDate(event, ${index}, 'DateFrom')">
+			<input type="date" name="dateTo_${index}" value="${dateTo}" onchange="changeVacationDate(event, ${index}, 'DateTo')">
+			<a href="javascript:void(0)" onclick="removeVacation(${index})">❌</a>
+		</div>`
+	});
+
+	$('#dev-panel__vacations-form').html(periods);
+};
+const changeVacationDate = (e, index, field) => {
+	vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`][index][field] = new Date(e.target.value).toISOString().split('.')[0];
+	if (field === 'DateFrom' && new Date(e.target.value) > new Date(vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`][index]['DateTo'])) {
+		$(`[name=dateTo_${index}`).val(e.target.value);
+		vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`][index]['DateTo'] = new Date(e.target.value).toISOString().split('.')[0];
+	}
+	setLS('vacations.default', vacations);
+};
+const addVacationDate = (e, index, field) => {
+	vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].push({...vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`][vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].length - 1]});
+	setLS('vacations.default', vacations);
+	refreshVacationTable();
+};
+const removeVacation = (index) => {
+	vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].splice(index, 1);
+	setLS('vacations.default', vacations);
+	refreshVacationTable();
+};
 
 const toggle = () => $('.dev-panel').toggleClass('showed');
 const addRow = () => {
@@ -208,15 +278,27 @@ const addRow = () => {
 		Id: $('#newJiraId').val(),
 		'%': $('#newJiraPercent').val()
 	});
-	setLS('dataTasks.default', dataTasks.map(task => ({Id: task.Id, '%': task['%']})));
+
+	setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
 	refreshTable();
 	$('#newJiraId').focus();
 };
 const removeRow = (index) => {
 	dataTasks.splice(index, 1);
-	setLS('dataTasks.default', dataTasks.map(task => ({Id: task.Id, '%': task['%']})));
+	setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
 	refreshTable();
 };
+const clearWorklog = (row = undefined, col) => {
+	if (row) {
+		dataTasks[row][col] = undefined;
+	} else {
+		dataTasks.forEach((_, index) =>{
+			dataTasks[index][col] = undefined;
+		});
+	}
+	refreshTable();
+};
+
 const activateProxy = () => {
 	$('#dev-panel__demo_proxy').hide();
 	$('#dev-panel__refresh').show();
@@ -257,7 +339,7 @@ async function sendRequest(options, postData) {
 }
 
 
-function startInit() {
+async function startInit() {
 	// Load work calendar
 	calendar = getLS(`xmlcalendar.${year}.json`);
 	!calendar && loadCalendar();
@@ -267,19 +349,30 @@ function startInit() {
 		...options,
 		url: `/rest/auth/latest/session`
 	};
-	getRequest(optFixVersion).then(data => {
+	await getRequest(optFixVersion).then(data => {
 		myName = data.name;
 	});
 
 	// load dataTasks
 	dataTasks = getLS(`dataTasks.default`) || [];
 
+	// load vacations
+	vacations = getLS(`vacations.default`) || {
+		[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`]: [
+			{
+				"DateFrom": "2023-01-01T00:00:00",
+				"DateTo": "2023-01-01T00:00:00"
+			}
+		]
+	};
+	setLS('vacations.default', vacations);
 
 	// Generate UI
 	const dateFrom = new Date(new Date().setDate(1)).toISOString().replace(/(.*?)T.*/, '$1');
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
+		<div style="position: fixed; top: 0; right: 0;">ver 1.1</div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
@@ -292,7 +385,16 @@ function startInit() {
 				<a id="dev-panel__save" class="aui-button aui-button-primary aui-style" style="display: none" onclick="save()" href="javascript:void(0)">Save</a>			
 			</div>
 		</div>
-		<div style="max-width: 100vw; overflow-x: auto;">
+		<div style="position: relative">
+			<a class="title" onclick="$('.dev-panel__vacations').toggle()" href="javascript:void(0)">Отпуска</a>
+			<div class="dev-panel__vacations" style="display: none">
+				<form id="dev-panel__vacations-form"></form>
+				<div>
+					<a id="dev-panel__generate" class="aui-button aui-button-primary aui-style" onclick="addVacationDate()" href="javascript:void(0)">Add</a>
+				</div>
+			</div>
+		</div>
+		<div style="max-width: 95vw; overflow-x: auto;">
 			<table id="dev-panel__table">
 			</table>
 		</div>
@@ -300,7 +402,15 @@ function startInit() {
 	$("#create-menu").append(`<a id="open-dev-panel" class="aui-button aui-button-primary aui-style" onclick="toggle()" href="javascript:void(0)">Dev</a>`);
 	$(document.body).append(devPanel);
 
+	// add css
+	const link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.type = 'text/css';
+	link.href = 'https://cdn.jsdelivr.net/gh/goldserg/tfs-tools/jira/main.css';
+	document.head.appendChild(link);
+
 	refreshTable();
+	refreshVacationTable();
 	console.error('INITED!');
 }
 
