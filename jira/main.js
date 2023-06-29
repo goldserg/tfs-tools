@@ -184,7 +184,7 @@ const addNewItem = (
 		columns = [...columnsBase];
 
 		daysDateMap.forEach((day, i) => {
-			var dateColName = day.toLocaleDateString().substr(0, 5);
+			var dateColName = day.toLocaleDateString('ru').substr(0, 5);
 			!columns.includes(dateColName) && columns.push(dateColName);
 			dataTasks.forEach((_, index) => {
 				dataTasks[index][dateColName] = objectTimeResult[_.Id][i];
@@ -297,7 +297,7 @@ const removeRow = (index) => {
 	refreshTable();
 };
 const clearWorklog = (row = undefined, col) => {
-	if (row) {
+	if (row !== undefined) {
 		dataTasks[row][col] = undefined;
 	} else {
 		dataTasks.forEach((_, index) =>{
@@ -381,7 +381,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.2</div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.3</div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
