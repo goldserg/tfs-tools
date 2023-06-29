@@ -17,7 +17,7 @@ let vacations = null;
 const columnsBase = ['Id', 'summary', '%'];
 let columns = [...columnsBase];
 let dataTasks = [];
-
+dataTasks.head = {};
 
 const setLS = (key, value) => localStorage[key] = JSON.stringify(value);
 const getLS = (key) => localStorage[key] ? JSON.parse(localStorage[key]) : null;
@@ -116,7 +116,7 @@ const addNewItem = (
 				.forEach(workLog => {
 
 					const workDayStarted = new Date(workLog.started);
-					if (!(dateFrom <= workDayStarted && workDayStarted <= dateTo)) return;
+					if (!(dateFrom <= workDayStarted && workDayStarted <= dateTo.getTime() + DAY_MS)) return;
 
 					//days[workDayStarted.getDayOfYear() - dateFrom.getDayOfYear()] -= workLog.timeSpentSeconds / 3600;
 					workDayStarted.setHours(-workDayStarted.getTimezoneOffset()  / 60, 0, 0, 0);
@@ -188,11 +188,14 @@ const addNewItem = (
 			!columns.includes(dateColName) && columns.push(dateColName);
 			dataTasks.forEach((_, index) => {
 				dataTasks[index][dateColName] = objectTimeResult[_.Id][i];
+				dataTasks.head[dateColName] = (dataTasks.head[dateColName] || 0) + (objectTimeResult[_.Id][i] || 0);
 			})
 		});
 
+		dataTasks.head['%'] = dataTasks.reduce((memo, row) => memo += Number(row['%']), 0);
 		// save summory
 		setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
+		setLS('dataTasks.head', dataTasks.head);
 		refreshTable();
 		$('#dev-panel__save').show();
 	});
@@ -220,7 +223,8 @@ const save = () => {
 function refreshTable() {
 	$('#newJiraPercent').off('keyup');
 	const head = '<thead><tr>\n\t\t\t' + columns.map(col => {
-		return columnsBase.includes(col) ? `<th>${col.replace(/(.*?)/, '$1')}</th>` : `<th>${col.replace(/(.*?)/, '$1')} <a href="javascript:void(0)" onclick="clearWorklog(undefined, '${col}')">❌</a></th>`
+		const control = dataTasks.head[col] === 0 ? `<br>✔️` : `<br>${dataTasks.head[col]}ч <a href="javascript:void(0)" onclick="clearWorklog(undefined, '${col}')">❌</a>`;
+		return `<th>${col} ${columnsBase.includes(col) ? '' : control}</th>`
 	}).join('\n\t\t') + '\n\t\t</tr></thead>';
 	const lines = dataTasks.map((wi, row) => `<tr>\n\t\t\t${columns.map(col => {
 			switch (col) {
@@ -235,7 +239,7 @@ function refreshTable() {
 						`<td>${wi[col]}  <a href="javascript:void(0)" onclick="clearWorklog(${row}, '${col}')">❌</a></td>`
 			}
 		}).join('\n\t\t\t')}\n\t\t</tr>`).join('\n\t\t') +
-		`<tr>\n\t\t\t<td><input type="text" id="newJiraId"></td><td colspan="2"><input type="text" id="newJiraPercent"> <a href="javascript:void(0)" onclick="addRow()">✔️</a></td>\n\t\t</tr>`;
+		`<tr>\n\t\t\t<td><input type="text" id="newJiraId"></td><td><input type="text" id="newJiraPercent"> <a href="javascript:void(0)" onclick="addRow()">✔️</a></td><td>${dataTasks.head['%'] ? dataTasks.head['%'] + ' %' : ''}</td>\n\t\t</tr>`;
 
 	$('#dev-panel__table').html(head + '<tbody>' + lines + '</tbody>');
 	$('#newJiraPercent').on('keyup', (e) => (e.key === 'Enter' || e.keyCode === 13) && addRow());
@@ -278,14 +282,18 @@ const addRow = () => {
 		Id: $('#newJiraId').val(),
 		'%': $('#newJiraPercent').val()
 	});
+	dataTasks.head['%'] = dataTasks.reduce((memo, row) => memo += Number(row['%']), 0);
 
 	setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
+	setLS('dataTasks.head', dataTasks.head);
 	refreshTable();
 	$('#newJiraId').focus();
 };
 const removeRow = (index) => {
 	dataTasks.splice(index, 1);
+	dataTasks.head['%'] = dataTasks.reduce((memo, row) => memo += Number(row['%']), 0);
 	setLS('dataTasks.default', dataTasks.map(task => ({'Id': task['Id'], 'summary': task['summary'], '%': task['%']}) ));
+	setLS('dataTasks.head', dataTasks.head);
 	refreshTable();
 };
 const clearWorklog = (row = undefined, col) => {
@@ -355,6 +363,7 @@ async function startInit() {
 
 	// load dataTasks
 	dataTasks = getLS(`dataTasks.default`) || [];
+	dataTasks.head = getLS(`dataTasks.head`) || {};
 
 	// load vacations
 	vacations = getLS(`vacations.default`) || {
@@ -372,7 +381,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.1</div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.2</div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
