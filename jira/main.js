@@ -164,15 +164,17 @@ const addNewItem = (
 			}, timeToCompleted);
 			let timer = 0;
 			while (timeToCompleted > 0) {
-				let time = totalDaysForTaskIndexes[Math.random() * totalDaysForTask >> 0];
+				let time = totalDaysForTaskIndexes[Math.random() * totalDaysForTaskIndexes.length >> 0];
 				console.log(time, Math.random() * totalDaysForTask >> 0, days[time]);
 				if (days[time] > 0) {
 					days[time] -= 1;// TODO: ввести параметр, для поддержки любой нужной кратности
 					objectTimeResult[taskId][time] += 1;
 					timeToCompleted--;
+				} else {
+					totalDaysForTaskIndexes.splice(totalDaysForTaskIndexes.indexOf(time), 1);
 				}
 				timer++;
-				if (timer > 20) {
+				if (timer > 50) {
 					console.log('BREAK! ', timeToCompleted);
 					break;
 				}
@@ -182,6 +184,7 @@ const addNewItem = (
 
 		// clear old data
 		columns = [...columnsBase];
+		dataTasks.head = {};
 
 		daysDateMap.forEach((day, i) => {
 			var dateColName = day.toLocaleDateString('ru').substr(0, 5);
@@ -381,7 +384,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.3</div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.4</div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
