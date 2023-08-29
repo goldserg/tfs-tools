@@ -237,12 +237,12 @@ function refreshTable() {
 				case '%':
 					return `<td>${wi[col] || ''}</td>`
 				default:
-					return !wi[col] ? 
+					return !wi[col] ?
 						`<td></td>` :
 						`<td>${wi[col]}  <a href="javascript:void(0)" onclick="clearWorklog(${row}, '${col}')">❌</a></td>`
 			}
 		}).join('\n\t\t\t')}\n\t\t</tr>`).join('\n\t\t') +
-		`<tr>\n\t\t\t<td><input type="text" id="newJiraId"></td><td><input type="text" id="newJiraPercent"> <a href="javascript:void(0)" onclick="addRow()">✔️</a></td><td>${dataTasks.head['%'] ? dataTasks.head['%'] + ' %' : ''}</td>\n\t\t</tr>`;
+		`<tr>\n\t\t\t<td><input type="text" id="newJiraId" onblur="checkRow()"></td><td><input type="text" id="newJiraPercent"> <a href="javascript:void(0)" onclick="addRow()">✔️</a></td><td class="${dataTasks.head['%'] > 100 ? 'error' : ''}">${dataTasks.head['%'] ? dataTasks.head['%'] + ' %' : ''}</td>\n\t\t</tr>`;
 
 	$('#dev-panel__table').html(head + '<tbody>' + lines + '</tbody>');
 	$('#newJiraPercent').on('keyup', (e) => (e.key === 'Enter' || e.keyCode === 13) && addRow());
@@ -280,9 +280,24 @@ const removeVacation = (index) => {
 };
 
 const toggle = () => $('.dev-panel').toggleClass('showed');
-const addRow = () => {
+const checkRow = async () => {
+	const key = $('#newJiraId').val();
+	const {errorMessages, fields} = await getRequest({
+		...options,
+		url: `${options.protocol}//${options.host}/rest/api/2/issue/${key}?fields=summary`
+	});
+
+	const validate = !(key && dataTasks.filter(_ => _.Id === key).length || errorMessages?.length);
+	validate ? $('#newJiraId').removeClass('error') : $('#newJiraId').addClass('error');
+	return {validate, summary: fields?.summary, errorMessages};
+};
+const addRow = async () => {
+	const checkRowResult = await checkRow();
+	if (!checkRowResult.validate)
+		return;
 	dataTasks.push({
 		Id: $('#newJiraId').val(),
+		summary: checkRowResult.summary,
 		'%': $('#newJiraPercent').val()
 	});
 	dataTasks.head['%'] = dataTasks.reduce((memo, row) => memo += Number(row['%']), 0);
@@ -332,6 +347,8 @@ async function getRequest(options) {
 			.fail(function(resp) {
 				if (resp.responseText.includes('/corsdemo'))
 					$('#dev-panel__demo_proxy').show();
+				else
+					resolve(resp.responseJSON);
 			});
 	}).catch((err) => {
 		console.error('err', err);
@@ -384,7 +401,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.4</div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.5 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">

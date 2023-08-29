@@ -75,6 +75,9 @@
 #dev-panel__table a {
 	color: #add;
 }
+#dev-panel__table .error {
+	border: 2px solid red;
+}
 #dev-panel__demo_proxy,
 #dev-panel__refresh {
 	background-color: #ff0000ff;
