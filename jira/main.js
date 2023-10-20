@@ -7,9 +7,10 @@ const options = {
 	}
 };
 let DAY_MS = Date.DAY;
+projects = '(HOL)';
 const corsProxies = ['https://cors-anywhere.herokuapp.com/'];
-const year = new Date().getFullYear();
-const jqlSearch = `project = HOL and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
+const currentYear = new Date().getFullYear();
+const jqlSearch = `project in ${projects} and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
 // 'assignee = currentUser() AND resolution = Unresolved order by created DESC'
 let myName = null;
 let calendar = null;
@@ -38,7 +39,7 @@ const getDateArray = (dateFrom, dateTo) => {
 	if (!DAY_MS) DAY_MS = Date.DAY;
 	const allDaysOff = calendar.reduce((memo, month)=>{
 		const days = month.days.split(',').filter(day => !day.includes('*')).map(day => parseInt(day.split('+')[0]));
-		days.forEach(day => memo.push(new Date(year, month.month - 1, day, 3)));
+		days.forEach(day => memo.push(new Date(currentYear, month.month - 1, day, 3)));
 		return memo;
 	}, []);
 	const personaDaysOff = vacations[`VIMPELCOM_MAIN\\${myName.split('@')[0]}`].reduce((memo, vac)=>{
@@ -53,7 +54,7 @@ const getDateArray = (dateFrom, dateTo) => {
 	}, []);
 	const allDays7h = calendar.reduce((memo, month)=>{
 		const days = month.days.split(',').filter(day => day.includes('*')).map(day => parseInt(day.split('*')[0]));
-		days.forEach(day => memo.push(new Date(year, month.month - 1, day, 3)));
+		days.forEach(day => memo.push(new Date(currentYear, month.month - 1, day, 3)));
 		return memo;
 	}, []);
 
@@ -211,7 +212,7 @@ const save = () => {
 				...options,
 				method: 'POST',
 				data: JSON.stringify({
-					started:  `${year}-${date.split('.').reverse().join('-')}T09:30:00.000+0300`,
+					started:  `${currentYear}-${date.split('.').reverse().join('-')}T09:30:00.000+0300`,
 					timeSpentSeconds: task[date] * 3600
 				}),
 				url: `${options.protocol}//${options.host}/rest/api/2/issue/${task.Id}/worklog`
@@ -330,7 +331,7 @@ const activateProxy = () => {
 	$('#dev-panel__refresh').show();
 };
 const loadCalendar = () => {
-	getRequest(corsProxies[0] + `http://xmlcalendar.ru/data/ru/${year}/calendar.json`).then(data => {
+	getRequest(corsProxies[0] + `http://xmlcalendar.ru/data/ru/${currentYear}/calendar.json`).then(data => {
 		setLS('xmlcalendar.2023.json', data.months);
 		calendar = data.months;
 	});
@@ -369,7 +370,7 @@ async function sendRequest(options, postData) {
 
 async function startInit() {
 	// Load work calendar
-	calendar = getLS(`xmlcalendar.${year}.json`);
+	calendar = getLS(`xmlcalendar.${currentYear}.json`);
 	!calendar && loadCalendar();
 
 	// load name
