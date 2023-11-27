@@ -7,7 +7,7 @@ const options = {
 	}
 };
 let DAY_MS = Date.DAY;
-projects = '(HOL)';
+projects = '(HOL, OMD)';
 const corsProxies = ['https://cors-anywhere.herokuapp.com/'];
 const currentYear = new Date().getFullYear();
 const jqlSearch = `project in ${projects} and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
@@ -332,7 +332,7 @@ const activateProxy = () => {
 };
 const loadCalendar = () => {
 	getRequest(corsProxies[0] + `http://xmlcalendar.ru/data/ru/${currentYear}/calendar.json`).then(data => {
-		setLS('xmlcalendar.2023.json', data.months);
+		setLS(`xmlcalendar.${currentYear}.json`, data.months);
 		calendar = data.months;
 	});
 	$('#dev-panel__refresh').hide();
@@ -402,7 +402,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.5 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.6 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
