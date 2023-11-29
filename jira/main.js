@@ -10,7 +10,7 @@ let DAY_MS = Date.DAY;
 projects = '(HOL, OMD)';
 const corsProxies = ['https://cors-anywhere.herokuapp.com/'];
 const currentYear = new Date().getFullYear();
-const jqlSearch = `project in ${projects} and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
+const jqlSearch = (projects) => `project in ${projects} and updatedDate > ${new Date().toISOString().replace(/(.*?)-\d\dT.*/, '$1')}-01 and issuetype != Initiative ORDER BY created DESC`;
 // 'assignee = currentUser() AND resolution = Unresolved order by created DESC'
 let myName = null;
 let calendar = null;
@@ -71,7 +71,7 @@ const getDateArray = (dateFrom, dateTo) => {
 }
 
 const addNewItem = (
-	jql = jqlSearch,
+	jql = jqlSearch(projects),
 	dateFrom =  new Date($('.dev-panel [name=dateFrom]').val()),
 	dateTo = new Date($('.dev-panel [name=dateTo]').val())
 ) => {
@@ -83,8 +83,8 @@ const addNewItem = (
 	jql = encodeURIComponent(jql);
 	const optFixVersion = {
 		...options,
-		path: `/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`,
-		url: `${options.protocol}//${options.host}/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`
+		//path: `/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`,
+		url: `${options.protocol}//${options.host}/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=1000`
 	};
 
 	let daysDateMap = getDateArray(dateFrom, dateTo);
@@ -402,7 +402,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.6 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.7 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
