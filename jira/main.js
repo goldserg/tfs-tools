@@ -86,10 +86,16 @@ const addNewItem = (
 		//path: `/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=250`,
 		url: `${options.protocol}//${options.host}/rest/api/2/search?jql=${jql}&fields=worklog,summary&maxResults=1000`
 	};
+	const allDays7h = calendar.reduce((memo, month)=>{
+		const days = month.days.split(',').filter(day => day.includes('*')).map(day => parseInt(day.split('*')[0]));
+		days.forEach(day => memo.push(new Date(currentYear, month.month - 1, day, 3)));
+		return memo;
+	}, []);
 
 	let daysDateMap = getDateArray(dateFrom, dateTo);
-	let days = new Array(daysDateMap.length).fill(8);
-
+	//let days = new Array(daysDateMap.length).fill(8);
+	let days = daysDateMap.map(_ => allDays7h.includes(_) ? 7 : 8);
+	
 	getRequest(optFixVersion).then(async function (taskList) {
 		// проверяем список worklog и составляем список необходимых расширенных запросов
 		for (const task of taskList.issues) {
@@ -374,13 +380,33 @@ async function startInit() {
 	!calendar && loadCalendar();
 
 	// load name
-	const optFixVersion = {
+	/*const optFixVersion = {
 		...options,
 		url: `/rest/auth/latest/session`
 	};
 	await getRequest(optFixVersion).then(data => {
 		myName = data.name;
-	});
+	});*/
+	myName = AJS.Meta.get('remote-user');
+
+		sendRequest({
+			...options,
+			headers: {
+				...options.headers,
+				"Content-Type": "application/json;odata=verbose",
+				"Content-Length": 0,
+				"Host": "space.beeline.ru"
+			},
+			url: `https://space.beeline.ru/_webapi/Employee/Leaves/`
+		}, {
+			"logins": [
+				`VIMPELCOM_MAIN\\${myName.split('@')[0]}`
+			],
+			"BeginDate": `${currentYear}-01-01T00:00:00.000Z`,
+			"EndDate": `${currentYear+1}-12-31T23:59:59.999Z`
+		}).then(data => {
+			console.log(data);
+		});
 
 	// load dataTasks
 	dataTasks = getLS(`dataTasks.default`) || [];
@@ -402,7 +428,7 @@ async function startInit() {
 	const dateTo = new Date().toISOString().replace(/(.*?)T.*/, '$1');
 	const devPanel = `
 	<div class="dev-panel">
-		<div style="position: fixed; top: 0; right: 0;">ver 1.7 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
+		<div style="position: fixed; top: 0; right: 0;">ver 1.8 <a onclick="toggle()" style="text-decoration: none;" href="javascript:void(0)">✖️</a></div>
 		<div class="dev-panel__header">
 			<form>
 				<input type="date" name="dateFrom" value="${dateFrom}">
@@ -443,6 +469,30 @@ async function startInit() {
 	refreshVacationTable();
 	console.error('INITED!');
 }
+
+window.toggle = toggle;
+window.checkRow = checkRow;
+window.addRow = addRow;
+window.removeRow = removeRow;
+window.clearWorklog = clearWorklog;
+window.activateProxy = activateProxy;
+window.loadCalendar = loadCalendar;
+window.getRequest = getRequest;
+window.sendRequest = sendRequest;
+window.startInit = startInit;
+
+window.addVacationDate = addVacationDate;
+window.removeVacation = removeVacation;
+window.changeVacationDate = changeVacationDate;
+window.refreshVacationTable = refreshVacationTable;
+window.refreshTable = refreshTable;
+window.save = save;
+window.addNewItem = addNewItem;
+window.getDateArray = getDateArray;
+window.setLS = setLS;
+window.getLS = getLS;
+window.keyPanel = keyPanel;
+window.jqlSearch = jqlSearch;
 
 $(document).ready(() => {
 	startInit();
